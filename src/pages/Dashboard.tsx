@@ -4,6 +4,8 @@ import {
   CardContent,
   Grid,
   Typography,
+  useTheme,
+  alpha,
 } from '@mui/material';
 import FlightIcon from '@mui/icons-material/Flight';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
@@ -25,60 +27,119 @@ const statCards = [
   {
     title: 'Total Flights Evaluated',
     value: '156',
-    icon: <FlightIcon />,
-    color: '#4A1D70',
+    icon: <FlightIcon fontSize="medium" />,
+    colorKey: 'primary',
   },
   {
     title: 'Average Performance',
     value: '84.2%',
-    icon: <TrendingUpIcon />,
-    color: '#388E3C',
+    icon: <TrendingUpIcon fontSize="medium" />,
+    colorKey: 'success',
   },
   {
     title: 'Pending Evaluations',
     value: '12',
-    icon: <PendingActionsIcon />,
-    color: '#F57C00',
+    icon: <PendingActionsIcon fontSize="medium" />,
+    colorKey: 'warning',
   },
   {
     title: 'Recent Activity',
     value: '8 today',
-    icon: <UpdateIcon />,
-    color: '#1976D2',
+    icon: <UpdateIcon fontSize="medium" />,
+    colorKey: 'info',
   },
 ];
 
 export default function Dashboard() {
-  return (
-    <Box>
-      <Typography variant="h4" sx={{ mb: 3 }}>
-        Performance Overview
-      </Typography>
+  const theme = useTheme();
 
-      <Grid container spacing={2} sx={{ mb: 3 }}>
+  return (
+    <Box sx={{ maxWidth: 1600, mx: 'auto' }}>
+      {/* Page Header */}
+      <Box sx={{ mb: { xs: 4, sm: 5, md: 6 } }}>
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 700,
+            letterSpacing: '-0.02em',
+            color: 'text.primary',
+            mb: 1,
+          }}
+        >
+          Performance Overview
+        </Typography>
+        <Typography
+          variant="body1"
+          sx={{
+            color: 'text.secondary',
+            fontSize: '0.9375rem',
+          }}
+        >
+          Monitor crew performance metrics and recent evaluation activity
+        </Typography>
+      </Box>
+
+      {/* Stat Cards */}
+      <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }} sx={{ mb: { xs: 4, sm: 5, md: 6 } }}>
         {statCards.map((card) => (
-          <Grid size={{ xs: 12, sm: 6, md: 3 }} key={card.title}>
-            <Card>
-              <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2.5 }}>
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={card.title}>
+            <Card
+              sx={{
+                height: '100%',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: theme.shadows[3],
+                },
+              }}
+            >
+              <CardContent
+                sx={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: { xs: 2, sm: 2.5 },
+                  p: { xs: 2.5, sm: 3 },
+                  '&:last-child': {
+                    pb: { xs: 2.5, sm: 3 },
+                  },
+                }}
+              >
                 <Box
                   sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 2,
+                    width: { xs: 52, sm: 56 },
+                    height: { xs: 52, sm: 56 },
+                    borderRadius: 2.5,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    bgcolor: `${card.color}14`,
-                    color: card.color,
+                    bgcolor: alpha(theme.palette[card.colorKey as keyof typeof theme.palette].main, 0.08),
+                    color: `${card.colorKey}.main`,
+                    flexShrink: 0,
                   }}
                 >
                   {card.icon}
                 </Box>
-                <Box>
-                  <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'text.secondary',
+                      fontSize: '0.8125rem',
+                      fontWeight: 500,
+                      mb: 0.75,
+                      letterSpacing: '0.01em',
+                    }}
+                  >
                     {card.title}
                   </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      fontWeight: 700,
+                      letterSpacing: '-0.02em',
+                      color: 'text.primary',
+                    }}
+                  >
                     {card.value}
                   </Typography>
                 </Box>
@@ -88,104 +149,258 @@ export default function Dashboard() {
         ))}
       </Grid>
 
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 7 }}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" sx={{ mb: 2 }}>
-                Assessment Categories — Year Comparison
-              </Typography>
-              <ResponsiveContainer width="100%" height={380}>
-                <RadarChart data={performanceData} cx="50%" cy="50%" outerRadius="70%">
-                  <PolarGrid stroke="#E8E8EE" />
-                  <PolarAngleAxis
-                    dataKey="category"
-                    tick={{ fontSize: 11, fill: '#5A5A7A' }}
-                  />
-                  <PolarRadiusAxis
-                    angle={90}
-                    domain={[0, 100]}
-                    tick={{ fontSize: 10, fill: '#999' }}
-                  />
-                  <Tooltip />
-                  <Radar
-                    name="2025"
-                    dataKey="year2025"
-                    stroke="#FF6B35"
-                    fill="#FF6B35"
-                    fillOpacity={0.15}
-                    strokeWidth={2}
-                  />
-                  <Radar
-                    name="2026"
-                    dataKey="year2026"
-                    stroke="#4A1D70"
-                    fill="#4A1D70"
-                    fillOpacity={0.15}
-                    strokeWidth={2}
-                  />
-                  <Legend />
-                </RadarChart>
-              </ResponsiveContainer>
+      {/* Charts and Recent Activity */}
+      <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
+        {/* Performance Chart */}
+        <Grid size={{ xs: 12, lg: 7 }}>
+          <Card
+            sx={{
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <CardContent
+              sx={{
+                p: { xs: 2.5, sm: 3, md: 4 },
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <Box sx={{ mb: { xs: 3, sm: 4 } }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 600,
+                    color: 'text.primary',
+                    mb: 0.5,
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  Assessment Categories
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: 'text.secondary',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  Year-over-year performance comparison
+                </Typography>
+              </Box>
+              <Box sx={{ flex: 1, minHeight: { xs: 320, sm: 380, md: 420 } }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart
+                    data={performanceData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius="70%"
+                    margin={{ top: 20, right: 30, bottom: 20, left: 30 }}
+                  >
+                    <PolarGrid
+                      stroke={theme.palette.divider}
+                      strokeWidth={1}
+                    />
+                    <PolarAngleAxis
+                      dataKey="category"
+                      tick={{
+                        fontSize: 12,
+                        fill: theme.palette.text.secondary,
+                        fontWeight: 500,
+                      }}
+                      tickLine={false}
+                    />
+                    <PolarRadiusAxis
+                      angle={90}
+                      domain={[0, 100]}
+                      tick={{
+                        fontSize: 11,
+                        fill: theme.palette.text.secondary,
+                      }}
+                      tickCount={6}
+                      axisLine={false}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: theme.palette.background.paper,
+                        border: `1px solid ${theme.palette.divider}`,
+                        borderRadius: theme.shape.borderRadius,
+                        boxShadow: theme.shadows[3],
+                        padding: '12px',
+                      }}
+                      labelStyle={{
+                        color: theme.palette.text.primary,
+                        fontWeight: 600,
+                        marginBottom: 8,
+                      }}
+                      itemStyle={{
+                        color: theme.palette.text.secondary,
+                        padding: '4px 0',
+                      }}
+                    />
+                    <Radar
+                      name="2025"
+                      dataKey="year2025"
+                      stroke={theme.palette.secondary.main}
+                      fill={theme.palette.secondary.main}
+                      fillOpacity={0.12}
+                      strokeWidth={2.5}
+                    />
+                    <Radar
+                      name="2026"
+                      dataKey="year2026"
+                      stroke={theme.palette.primary.main}
+                      fill={theme.palette.primary.main}
+                      fillOpacity={0.12}
+                      strokeWidth={2.5}
+                    />
+                    <Legend
+                      wrapperStyle={{
+                        paddingTop: '20px',
+                      }}
+                      iconType="circle"
+                      formatter={(value) => (
+                        <span style={{
+                          color: theme.palette.text.primary,
+                          fontWeight: 500,
+                          fontSize: '0.875rem',
+                        }}>
+                          {value}
+                        </span>
+                      )}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12, md: 5 }}>
-          <Card sx={{ height: '100%' }}>
-            <CardContent>
-              <Typography variant="h6" sx={{ mb: 2 }}>
-                Recent Evaluations
-              </Typography>
-              {pastFlights.slice(0, 6).map((flight) => (
-                <Box
-                  key={flight.id}
+        {/* Recent Evaluations */}
+        <Grid size={{ xs: 12, lg: 5 }}>
+          <Card
+            sx={{
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <CardContent
+              sx={{
+                p: { xs: 2.5, sm: 3, md: 4 },
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <Box sx={{ mb: { xs: 3, sm: 4 } }}>
+                <Typography
+                  variant="h6"
                   sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    py: 1.5,
-                    borderBottom: '1px solid #F0F0F5',
-                    '&:last-child': { borderBottom: 'none' },
+                    fontWeight: 600,
+                    color: 'text.primary',
+                    mb: 0.5,
+                    letterSpacing: '-0.01em',
                   }}
                 >
-                  <Box>
-                    <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>
-                      {flight.crewMemberName}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {flight.flightNumber} • {flight.route} • {flight.date}
-                    </Typography>
-                  </Box>
+                  Recent Evaluations
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: 'text.secondary',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  Latest crew assessment results
+                </Typography>
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                {pastFlights.slice(0, 6).map((flight, index) => (
                   <Box
+                    key={flight.id}
                     sx={{
-                      px: 1.5,
-                      py: 0.5,
-                      borderRadius: 1,
-                      fontWeight: 600,
-                      fontSize: '0.8rem',
-                      bgcolor:
-                        flight.overallScore >= 90
-                          ? '#E8F5E9'
-                          : flight.overallScore >= 75
-                          ? '#E3F2FD'
-                          : flight.overallScore >= 60
-                          ? '#FFF3E0'
-                          : '#FFEBEE',
-                      color:
-                        flight.overallScore >= 90
-                          ? '#2E7D32'
-                          : flight.overallScore >= 75
-                          ? '#1565C0'
-                          : flight.overallScore >= 60
-                          ? '#E65100'
-                          : '#C62828',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      gap: 2,
+                      py: { xs: 2, sm: 2.5 },
+                      borderBottom: index !== 5 ? `1px solid ${theme.palette.divider}` : 'none',
+                      transition: 'background-color 0.2s ease',
+                      '&:hover': {
+                        bgcolor: alpha(theme.palette.primary.main, 0.02),
+                      },
                     }}
                   >
-                    {flight.overallScore}%
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 600,
+                          color: 'text.primary',
+                          mb: 0.5,
+                          letterSpacing: '-0.01em',
+                        }}
+                      >
+                        {flight.crewMemberName}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: 'text.secondary',
+                          fontSize: '0.8125rem',
+                          display: 'block',
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {flight.flightNumber} • {flight.route}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: 'text.secondary',
+                          fontSize: '0.75rem',
+                          display: 'block',
+                          mt: 0.25,
+                        }}
+                      >
+                        {flight.date}
+                      </Typography>
+                    </Box>
+                    <Box
+                      sx={{
+                        px: 2,
+                        py: 0.75,
+                        borderRadius: 1.5,
+                        fontWeight: 700,
+                        fontSize: '0.875rem',
+                        letterSpacing: '-0.01em',
+                        flexShrink: 0,
+                        bgcolor:
+                          flight.overallScore >= 90
+                            ? theme.palette.success.light
+                            : flight.overallScore >= 75
+                            ? theme.palette.info.light
+                            : flight.overallScore >= 60
+                            ? theme.palette.warning.light
+                            : theme.palette.error.light,
+                        color:
+                          flight.overallScore >= 90
+                            ? theme.palette.success.main
+                            : flight.overallScore >= 75
+                            ? theme.palette.info.main
+                            : flight.overallScore >= 60
+                            ? theme.palette.warning.main
+                            : theme.palette.error.main,
+                      }}
+                    >
+                      {flight.overallScore}%
+                    </Box>
                   </Box>
-                </Box>
-              ))}
+                ))}
+              </Box>
             </CardContent>
           </Card>
         </Grid>

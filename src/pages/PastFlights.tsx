@@ -59,13 +59,36 @@ export default function PastFlights() {
 
   return (
     <Box>
-      <Typography variant="h4" sx={{ mb: 3 }}>
+      <Typography
+        variant="h4"
+        sx={{
+          mb: 4,
+          fontWeight: 600,
+          color: 'text.primary',
+          letterSpacing: '-0.02em'
+        }}
+      >
         Past Flights
       </Typography>
 
       {/* Filters */}
-      <Card sx={{ mb: 2 }}>
-        <CardContent sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center', py: 2 }}>
+      <Card
+        sx={{
+          mb: 3,
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
+          border: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        <CardContent sx={{
+          display: 'flex',
+          gap: 2.5,
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          px: 3,
+          py: 2.5,
+          '&:last-child': { pb: 2.5 }
+        }}>
           <TextField
             size="small"
             placeholder="Search by name, flight, or route..."
@@ -73,12 +96,38 @@ export default function PastFlights() {
             onChange={(e) => setSearch(e.target.value)}
             slotProps={{
               input: {
-                startAdornment: <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />,
+                startAdornment: <SearchIcon sx={{ color: 'text.disabled', mr: 1, fontSize: 20 }} />,
               },
             }}
-            sx={{ minWidth: 260, flex: 1 }}
+            sx={{
+              minWidth: 280,
+              flex: 1,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'background.paper',
+                transition: 'all 0.2s',
+                '&:hover': {
+                  backgroundColor: 'action.hover',
+                },
+                '&.Mui-focused': {
+                  backgroundColor: 'background.paper',
+                  boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.08)',
+                }
+              }
+            }}
           />
-          <FormControl size="small" sx={{ minWidth: 160 }}>
+          <FormControl
+            size="small"
+            sx={{
+              minWidth: 170,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'background.paper',
+                transition: 'all 0.2s',
+                '&:hover': {
+                  backgroundColor: 'action.hover',
+                }
+              }
+            }}
+          >
             <InputLabel>Performance</InputLabel>
             <Select
               value={performanceFilter}
@@ -92,7 +141,19 @@ export default function PastFlights() {
               <MenuItem value="below">Below 60</MenuItem>
             </Select>
           </FormControl>
-          <FormControl size="small" sx={{ minWidth: 140 }}>
+          <FormControl
+            size="small"
+            sx={{
+              minWidth: 150,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'background.paper',
+                transition: 'all 0.2s',
+                '&:hover': {
+                  backgroundColor: 'action.hover',
+                }
+              }
+            }}
+          >
             <InputLabel>Role</InputLabel>
             <Select
               value={roleFilter}
@@ -108,25 +169,125 @@ export default function PastFlights() {
       </Card>
 
       {/* Table */}
-      <Card>
+      <Card
+        sx={{
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
+          border: '1px solid',
+          borderColor: 'divider',
+          overflow: 'hidden'
+        }}
+      >
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow>
-                <TableCell>Date</TableCell>
-                <TableCell>Flight</TableCell>
-                <TableCell>Route</TableCell>
-                <TableCell>Crew Member</TableCell>
-                <TableCell>Role</TableCell>
-                <TableCell align="center">Score</TableCell>
-                <TableCell align="center">Actions</TableCell>
+              <TableRow
+                sx={{
+                  backgroundColor: 'grey.50',
+                  '& .MuiTableCell-root': {
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                  }
+                }}
+              >
+                <TableCell
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '0.8125rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.03em',
+                    color: 'text.secondary',
+                    py: 2
+                  }}
+                >
+                  Date
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '0.8125rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.03em',
+                    color: 'text.secondary',
+                    py: 2
+                  }}
+                >
+                  Flight
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '0.8125rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.03em',
+                    color: 'text.secondary',
+                    py: 2
+                  }}
+                >
+                  Route
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '0.8125rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.03em',
+                    color: 'text.secondary',
+                    py: 2
+                  }}
+                >
+                  Crew Member
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '0.8125rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.03em',
+                    color: 'text.secondary',
+                    py: 2
+                  }}
+                >
+                  Role
+                </TableCell>
+                <TableCell
+                  align="center"
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '0.8125rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.03em',
+                    color: 'text.secondary',
+                    py: 2
+                  }}
+                >
+                  Score
+                </TableCell>
+                <TableCell
+                  align="center"
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '0.8125rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.03em',
+                    color: 'text.secondary',
+                    py: 2
+                  }}
+                >
+                  Actions
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  <TableCell colSpan={7} align="center" sx={{ py: 8, border: 'none' }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: 'text.secondary',
+                        fontSize: '0.9375rem'
+                      }}
+                    >
                       No matching flights found
                     </Typography>
                   </TableCell>
@@ -135,45 +296,92 @@ export default function PastFlights() {
                 filtered.map((flight) => {
                   const scoreColor = getScoreColor(flight.overallScore);
                   return (
-                    <TableRow key={flight.id} hover>
-                      <TableCell>
-                        <Typography variant="body2">{flight.date}</Typography>
+                    <TableRow
+                      key={flight.id}
+                      hover
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: 'action.hover'
+                        },
+                        '&:last-child .MuiTableCell-root': {
+                          borderBottom: 'none'
+                        }
+                      }}
+                    >
+                      <TableCell sx={{ py: 2.5 }}>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontSize: '0.875rem',
+                            color: 'text.secondary'
+                          }}
+                        >
+                          {flight.date}
+                        </Typography>
                       </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      <TableCell sx={{ py: 2.5 }}>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: '0.875rem',
+                            color: 'text.primary'
+                          }}
+                        >
                           {flight.flightNumber}
                         </Typography>
                       </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">{flight.route}</Typography>
+                      <TableCell sx={{ py: 2.5 }}>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontSize: '0.875rem',
+                            color: 'text.primary'
+                          }}
+                        >
+                          {flight.route}
+                        </Typography>
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ py: 2.5 }}>
                         <Typography
                           variant="body2"
                           sx={{
                             fontWeight: 500,
+                            fontSize: '0.875rem',
                             cursor: 'pointer',
                             color: 'primary.main',
-                            '&:hover': { textDecoration: 'underline' },
+                            transition: 'all 0.2s',
+                            display: 'inline-block',
+                            '&:hover': {
+                              textDecoration: 'underline',
+                              opacity: 0.8
+                            },
                           }}
                           onClick={() => navigate(`/crew/${flight.crewMemberId}`)}
                         >
                           {flight.crewMemberName}
                         </Typography>
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ py: 2.5 }}>
                         <Chip
                           label={flight.role}
                           size="small"
                           sx={{
-                            bgcolor: flight.role === 'Purser' ? '#4A1D7014' : '#1976D214',
+                            bgcolor: flight.role === 'Purser' ? '#4A1D7012' : '#1976D212',
                             color: flight.role === 'Purser' ? '#4A1D70' : '#1976D2',
                             fontWeight: 500,
                             fontSize: '0.75rem',
+                            height: 26,
+                            borderRadius: '6px',
+                            border: '1px solid',
+                            borderColor: flight.role === 'Purser' ? '#4A1D7020' : '#1976D220',
+                            '& .MuiChip-label': {
+                              px: 1.5
+                            }
                           }}
                         />
                       </TableCell>
-                      <TableCell align="center">
+                      <TableCell align="center" sx={{ py: 2.5 }}>
                         <Chip
                           label={`${flight.overallScore}%`}
                           size="small"
@@ -181,14 +389,33 @@ export default function PastFlights() {
                             bgcolor: scoreColor.bg,
                             color: scoreColor.text,
                             fontWeight: 600,
+                            fontSize: '0.8125rem',
+                            height: 26,
+                            minWidth: 56,
+                            borderRadius: '6px',
+                            '& .MuiChip-label': {
+                              px: 1.5
+                            }
                           }}
                         />
                       </TableCell>
-                      <TableCell align="center">
+                      <TableCell align="center" sx={{ py: 2.5 }}>
                         <Button
                           size="small"
-                          startIcon={<VisibilityIcon />}
-                          sx={{ fontSize: '0.75rem' }}
+                          startIcon={<VisibilityIcon sx={{ fontSize: 16 }} />}
+                          sx={{
+                            fontSize: '0.8125rem',
+                            fontWeight: 500,
+                            textTransform: 'none',
+                            px: 2,
+                            py: 0.75,
+                            borderRadius: '6px',
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                              backgroundColor: 'primary.main',
+                              color: 'white',
+                            }
+                          }}
                         >
                           View
                         </Button>

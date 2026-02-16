@@ -17,37 +17,68 @@ export default function CrewProfiles() {
 
   return (
     <Box>
-      <Typography variant="h4" sx={{ mb: 3 }}>
+      <Typography
+        variant="h4"
+        sx={{
+          mb: 4,
+          fontWeight: 600,
+          letterSpacing: '-0.02em',
+        }}
+      >
         Crew Profiles
       </Typography>
 
-      <Grid container spacing={2}>
+      <Grid container spacing={3}>
         {crewMembers.map((member) => (
-          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={member.id}>
+          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={member.id}>
             <Card
               sx={{
                 cursor: 'pointer',
-                '&:hover': { borderColor: 'primary.main' },
+                transition: 'all 0.2s ease-in-out',
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                '&:hover': {
+                  borderColor: 'primary.main',
+                  boxShadow: '0 4px 12px rgba(74, 29, 112, 0.12)',
+                  transform: 'translateY(-2px)',
+                },
               }}
               onClick={() => navigate(`/crew/${member.id}`)}
             >
-              <CardContent sx={{ textAlign: 'center', py: 3 }}>
+              <CardContent sx={{ textAlign: 'center', py: 4, px: 3 }}>
                 <Avatar
                   sx={{
-                    width: 64,
-                    height: 64,
+                    width: 72,
+                    height: 72,
                     mx: 'auto',
-                    mb: 1.5,
+                    mb: 2,
                     bgcolor: '#4A1D70',
                     fontSize: '1.5rem',
+                    boxShadow: '0 2px 8px rgba(74, 29, 112, 0.2)',
                   }}
                 >
-                  <PersonIcon sx={{ fontSize: 32 }} />
+                  <PersonIcon sx={{ fontSize: 36 }} />
                 </Avatar>
-                <Typography variant="h6" sx={{ mb: 0.5 }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    mb: 0.5,
+                    fontWeight: 600,
+                    fontSize: '1.125rem',
+                    letterSpacing: '-0.01em',
+                  }}
+                >
                   {member.name}
                 </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 2,
+                    fontSize: '0.875rem',
+                  }}
+                >
                   {member.id} &bull; {member.role}
                 </Typography>
                 <Chip
@@ -57,12 +88,23 @@ export default function CrewProfiles() {
                     bgcolor: `${performanceBadgeColors[member.previousPerformance]}18`,
                     color: performanceBadgeColors[member.previousPerformance],
                     textTransform: 'capitalize',
-                    fontWeight: 500,
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    height: 28,
+                    borderRadius: '6px',
+                    px: 1.5,
+                    border: '1px solid',
+                    borderColor: `${performanceBadgeColors[member.previousPerformance]}30`,
                   }}
                 />
                 <Typography
                   variant="caption"
-                  sx={{ display: 'block', mt: 1, color: 'text.secondary' }}
+                  sx={{
+                    display: 'block',
+                    mt: 2,
+                    color: 'text.secondary',
+                    fontSize: '0.75rem',
+                  }}
                 >
                   Joined: {member.joinDate}
                 </Typography>

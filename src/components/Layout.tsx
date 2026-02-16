@@ -20,7 +20,7 @@ import FlightIcon from '@mui/icons-material/Flight';
 import HistoryIcon from '@mui/icons-material/History';
 import PeopleIcon from '@mui/icons-material/People';
 
-const DRAWER_WIDTH = 240;
+const DRAWER_WIDTH = 260;
 
 const navItems = [
   { label: 'Dashboard', path: '/', icon: <DashboardIcon /> },
@@ -37,16 +37,16 @@ export default function Layout() {
   const location = useLocation();
 
   const drawer = (
-    <Box>
-      <Box sx={{ p: 2, borderBottom: '1px solid #E8E8EE' }}>
-        <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 700 }}>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Typography variant="h5" sx={{ color: 'primary.main', fontWeight: 700, mb: 0.5 }}>
           AirCairo
         </Typography>
-        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-          Crew Evaluation System
+        <Typography variant="caption" sx={{ color: 'text.secondary', letterSpacing: '0.05em' }}>
+          CREW EVALUATION SYSTEM
         </Typography>
       </Box>
-      <List sx={{ pt: 1 }}>
+      <List sx={{ px: 2, py: 3, flex: 1 }}>
         {navItems.map((item) => (
           <ListItemButton
             key={item.path}
@@ -56,19 +56,35 @@ export default function Layout() {
               if (isMobile) setMobileOpen(false);
             }}
             sx={{
-              mx: 1,
-              borderRadius: 1,
-              mb: 0.5,
+              borderRadius: 2,
+              mb: 1,
+              py: 1.5,
+              transition: 'all 0.2s ease',
               '&.Mui-selected': {
                 backgroundColor: 'primary.main',
                 color: '#fff',
                 '& .MuiListItemIcon-root': { color: '#fff' },
-                '&:hover': { backgroundColor: 'primary.dark' },
+                '&:hover': {
+                  backgroundColor: 'primary.dark',
+                  transform: 'translateX(4px)',
+                },
+              },
+              '&:hover': {
+                backgroundColor: 'action.hover',
+                transform: 'translateX(4px)',
               },
             }}
           >
-            <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.label} primaryTypographyProps={{ fontSize: '0.875rem' }} />
+            <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
+              {item.icon}
+            </ListItemIcon>
+            <ListItemText
+              primary={item.label}
+              primaryTypographyProps={{
+                fontSize: '0.9375rem',
+                fontWeight: location.pathname === item.path ? 600 : 500,
+              }}
+            />
           </ListItemButton>
         ))}
       </List>
@@ -78,9 +94,22 @@ export default function Layout() {
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
       {isMobile && (
-        <AppBar position="fixed" sx={{ bgcolor: '#fff', color: 'text.primary', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+        <AppBar
+          position="fixed"
+          elevation={0}
+          sx={{
+            bgcolor: 'background.paper',
+            color: 'text.primary',
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
           <Toolbar>
-            <IconButton edge="start" onClick={() => setMobileOpen(!mobileOpen)} sx={{ mr: 2 }}>
+            <IconButton
+              edge="start"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              sx={{ mr: 2 }}
+            >
               <MenuIcon />
             </IconButton>
             <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 700 }}>
@@ -97,7 +126,13 @@ export default function Layout() {
             open={mobileOpen}
             onClose={() => setMobileOpen(false)}
             ModalProps={{ keepMounted: true }}
-            sx={{ '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box' } }}
+            sx={{
+              '& .MuiDrawer-paper': {
+                width: DRAWER_WIDTH,
+                boxSizing: 'border-box',
+                bgcolor: 'background.paper',
+              }
+            }}
           >
             {drawer}
           </Drawer>
@@ -108,7 +143,9 @@ export default function Layout() {
               '& .MuiDrawer-paper': {
                 width: DRAWER_WIDTH,
                 boxSizing: 'border-box',
-                borderRight: '1px solid #E8E8EE',
+                borderRight: '1px solid',
+                borderColor: 'divider',
+                bgcolor: 'background.paper',
               },
             }}
             open
@@ -122,9 +159,11 @@ export default function Layout() {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: { xs: 2, sm: 3, md: 4 },
           width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
           mt: isMobile ? 8 : 0,
+          maxWidth: '1600px',
+          mx: 'auto',
         }}
       >
         <Outlet />
