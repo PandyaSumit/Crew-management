@@ -80,16 +80,34 @@ export default function CabinCrewAssessment() {
   const progress = totalCriteria > 0 ? (completedCriteria / totalCriteria) * 100 : 0;
 
   const overallScore = useMemo(() => {
-    const rated = Object.entries(form).filter(([, v]) => v.rating !== null);
-    if (rated.length === 0) return null;
-    const total = rated.reduce((acc, [id, v]) => {
-      for (const cat of cabinCrewCategories) {
-        const crit = cat.criteria.find((c) => c.id === id);
-        if (crit && v.rating) return acc + crit.weights[v.rating];
-      }
-      return acc;
-    }, 0);
-    return Math.round(total / rated.length);
+    // Calculate category scores (each category's criteria weights sum to 100)
+    const categoryScores = cabinCrewCategories.map((cat) => {
+      const catCriteria = cat.criteria.filter((c) => form[c.id]?.rating !== null);
+      if (catCriteria.length === 0) return null;
+
+      const catTotal = catCriteria.reduce((acc, crit) => {
+        const rating = form[crit.id].rating;
+        return acc + (rating ? crit.weights[rating] : 0);
+      }, 0);
+
+      // If not all criteria rated, proportionally scale the score
+      const allCriteriaMaxScore = cat.criteria.reduce(
+        (acc, c) => acc + c.weights.O,
+        0
+      );
+      const ratedCriteriaMaxScore = catCriteria.reduce(
+        (acc, c) => acc + c.weights.O,
+        0
+      );
+
+      return (catTotal / ratedCriteriaMaxScore) * allCriteriaMaxScore;
+    });
+
+    const validScores = categoryScores.filter((s): s is number => s !== null);
+    if (validScores.length === 0) return null;
+
+    // Average all category scores
+    return Math.round(validScores.reduce((acc, s) => acc + s, 0) / validScores.length);
   }, [form]);
 
   const handleRatingChange = (criterionId: string, rating: RatingValue | null) => {
@@ -145,17 +163,14 @@ export default function CabinCrewAssessment() {
               Category Breakdown
             </Typography>
             {cabinCrewCategories.map((cat) => {
-              const catCriteria = cat.criteria.map((c) => form[c.id]);
-              const rated = catCriteria.filter((v) => v.rating !== null);
+              const ratedCriteria = cat.criteria.filter((c) => form[c.id]?.rating !== null);
               const catScore =
-                rated.length > 0
+                ratedCriteria.length > 0
                   ? Math.round(
-                      rated.reduce((acc, v) => {
-                        const crit = cat.criteria.find(
-                          (c) => form[c.id] === v
-                        );
-                        return acc + (crit && v.rating ? crit.weights[v.rating] : 0);
-                      }, 0) / rated.length
+                      ratedCriteria.reduce((acc, crit) => {
+                        const rating = form[crit.id].rating;
+                        return acc + (rating ? crit.weights[rating] : 0);
+                      }, 0)
                     )
                   : 0;
               return (
@@ -295,6 +310,21 @@ export default function CabinCrewAssessment() {
           />
         ))}
       </Box>
+
+      <Alert severity="info" sx={{ mb: 2, fontSize: '0.75rem' }}>
+        <Typography variant="caption" sx={{ display: 'block', fontWeight: 600, mb: 0.5 }}>
+          Remarks Requirements:
+        </Typography>
+        <Typography variant="caption" sx={{ display: 'block' }}>
+          • <strong>U / N</strong>: Mandatory remarks highlighting gaps and recommended actions
+        </Typography>
+        <Typography variant="caption" sx={{ display: 'block' }}>
+          • <strong>M</strong>: Remarks optional but encouraged
+        </Typography>
+        <Typography variant="caption" sx={{ display: 'block' }}>
+          • <strong>E / O</strong>: Mandatory remarks acknowledging strengths and positive impact
+        </Typography>
+      </Alert>
 
       {/* Categories */}
       {cabinCrewCategories.map((category) => {
