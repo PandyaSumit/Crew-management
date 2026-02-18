@@ -1,13 +1,10 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
   Card,
-  CardContent,
-  Chip,
   FormControl,
-  InputLabel,
   MenuItem,
   Select,
   Table,
@@ -18,179 +15,423 @@ import {
   TableRow,
   TextField,
   Typography,
-} from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import { pastFlights } from '../data/mockData';
+  InputAdornment,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { pastFlights } from "../data/mockData";
+
+const performanceOptions = [
+  { value: "all", label: "All Performance" },
+  { value: "excellent", label: "Excellent (90+)" },
+  { value: "good", label: "Good (75–89)" },
+  { value: "average", label: "Average (60–74)" },
+  { value: "below", label: "Below 60" },
+];
+
+const roleOptions = [
+  { value: "all", label: "All Roles" },
+  { value: "Cabin Crew", label: "Cabin Crew" },
+  { value: "Purser", label: "Purser" },
+];
+
+const getScoreStyle = (score: number) => {
+  if (score >= 90) return { bg: "#f0fdf4", color: "#15803d", dot: "#22c55e" };
+  if (score >= 75) return { bg: "#eff6ff", color: "#1d4ed8", dot: "#3b82f6" };
+  if (score >= 60) return { bg: "#fff7ed", color: "#c2410c", dot: "#f97316" };
+  return { bg: "#fef2f2", color: "#b91c1c", dot: "#ef4444" };
+};
+
+const getRoleStyle = (role: string) =>
+  role === "Purser"
+    ? { bg: "#f5f3ff", color: "#6d28d9" }
+    : { bg: "#f0f9ff", color: "#0369a1" };
 
 export default function PastFlights() {
   const navigate = useNavigate();
-  const [search, setSearch] = useState('');
-  const [performanceFilter, setPerformanceFilter] = useState('all');
-  const [roleFilter, setRoleFilter] = useState('all');
+  const [search, setSearch] = useState("");
+  const [performanceFilter, setPerformanceFilter] = useState("all");
+  const [roleFilter, setRoleFilter] = useState("all");
 
   const filtered = useMemo(() => {
     return pastFlights.filter((f) => {
       const matchSearch =
-        search === '' ||
+        search === "" ||
         f.crewMemberName.toLowerCase().includes(search.toLowerCase()) ||
         f.flightNumber.toLowerCase().includes(search.toLowerCase()) ||
         f.route.toLowerCase().includes(search.toLowerCase());
 
       const matchPerformance =
-        performanceFilter === 'all' ||
-        (performanceFilter === 'excellent' && f.overallScore >= 90) ||
-        (performanceFilter === 'good' && f.overallScore >= 75 && f.overallScore < 90) ||
-        (performanceFilter === 'average' && f.overallScore >= 60 && f.overallScore < 75) ||
-        (performanceFilter === 'below' && f.overallScore < 60);
+        performanceFilter === "all" ||
+        (performanceFilter === "excellent" && f.overallScore >= 90) ||
+        (performanceFilter === "good" &&
+          f.overallScore >= 75 &&
+          f.overallScore < 90) ||
+        (performanceFilter === "average" &&
+          f.overallScore >= 60 &&
+          f.overallScore < 75) ||
+        (performanceFilter === "below" && f.overallScore < 60);
 
-      const matchRole = roleFilter === 'all' || f.role === roleFilter;
+      const matchRole = roleFilter === "all" || f.role === roleFilter;
 
       return matchSearch && matchPerformance && matchRole;
     });
   }, [search, performanceFilter, roleFilter]);
 
-  const getScoreColor = (score: number) => {
-    if (score >= 90) return { bg: '#E8F5E9', text: '#2E7D32' };
-    if (score >= 75) return { bg: '#E3F2FD', text: '#1565C0' };
-    if (score >= 60) return { bg: '#FFF3E0', text: '#E65100' };
-    return { bg: '#FFEBEE', text: '#C62828' };
-  };
-
   return (
     <Box>
-      <Typography variant="h4" sx={{ mb: 3 }}>
-        Past Flights
-      </Typography>
+      {/* Page Header */}
+      <Box sx={{ mb: 3 }}>
+        <Typography
+          sx={{
+            fontSize: "1.3rem",
+            fontWeight: 600,
+            color: "#111827",
+            letterSpacing: "-0.02em",
+            lineHeight: 1.3,
+            mb: 0.5,
+          }}
+        >
+          Past Flights
+        </Typography>
+        <Typography sx={{ fontSize: "0.875rem", color: "#6b7280" }}>
+          Browse and filter all completed crew evaluations.
+        </Typography>
+      </Box>
 
-      {/* Filters */}
-      <Card sx={{ mb: 2 }}>
-        <CardContent sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center', py: 2 }}>
-          <TextField
-            size="small"
-            placeholder="Search by name, flight, or route..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            slotProps={{
-              input: {
-                startAdornment: <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />,
+      {/* Filters Bar */}
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1.5,
+          flexWrap: "wrap",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
+        <TextField
+          size="small"
+          placeholder="Search name, flight, or route…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ fontSize: 16, color: "#9ca3af" }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            flex: 1,
+            minWidth: 220,
+            maxWidth: 340,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "8px",
+              bgcolor: "#ffffff",
+              fontSize: "0.825rem",
+              "& fieldset": { borderColor: "#e8eaed" },
+              "&:hover fieldset": { borderColor: "#d1d5db" },
+              "&.Mui-focused fieldset": {
+                borderColor: "primary.main",
+                borderWidth: 1.5,
               },
-            }}
-            sx={{ minWidth: 260, flex: 1 }}
-          />
-          <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel>Performance</InputLabel>
+            },
+          }}
+        />
+
+        {[
+          {
+            value: performanceFilter,
+            setter: setPerformanceFilter,
+            options: performanceOptions,
+            width: 175,
+          },
+          {
+            value: roleFilter,
+            setter: setRoleFilter,
+            options: roleOptions,
+            width: 140,
+          },
+        ].map((filter, i) => (
+          <FormControl key={i} size="small" sx={{ minWidth: filter.width }}>
             <Select
-              value={performanceFilter}
-              label="Performance"
-              onChange={(e) => setPerformanceFilter(e.target.value)}
+              value={filter.value}
+              onChange={(e) => filter.setter(e.target.value)}
+              displayEmpty
+              sx={{
+                borderRadius: "8px",
+                bgcolor: "#ffffff",
+                fontSize: "0.825rem",
+                color: "#374151",
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#e8eaed",
+                },
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#d1d5db",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "primary.main",
+                  borderWidth: 1.5,
+                },
+              }}
             >
-              <MenuItem value="all">All Levels</MenuItem>
-              <MenuItem value="excellent">Excellent (90+)</MenuItem>
-              <MenuItem value="good">Good (75-89)</MenuItem>
-              <MenuItem value="average">Average (60-74)</MenuItem>
-              <MenuItem value="below">Below 60</MenuItem>
+              {filter.options.map((opt) => (
+                <MenuItem
+                  key={opt.value}
+                  value={opt.value}
+                  sx={{ fontSize: "0.825rem", color: "#374151" }}
+                >
+                  {opt.label}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
-          <FormControl size="small" sx={{ minWidth: 140 }}>
-            <InputLabel>Role</InputLabel>
-            <Select
-              value={roleFilter}
-              label="Role"
-              onChange={(e) => setRoleFilter(e.target.value)}
-            >
-              <MenuItem value="all">All Roles</MenuItem>
-              <MenuItem value="Cabin Crew">Cabin Crew</MenuItem>
-              <MenuItem value="Purser">Purser</MenuItem>
-            </Select>
-          </FormControl>
-        </CardContent>
-      </Card>
+        ))}
+
+        {/* Result count */}
+        <Typography
+          sx={{
+            fontSize: "0.775rem",
+            color: "#9ca3af",
+            ml: "auto",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {filtered.length} result{filtered.length !== 1 ? "s" : ""}
+        </Typography>
+      </Box>
 
       {/* Table */}
-      <Card>
+      <Card
+        elevation={0}
+        sx={{
+          border: "1px solid #e8eaed",
+          borderRadius: "12px",
+          bgcolor: "#ffffff",
+          overflow: "hidden",
+        }}
+      >
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow>
-                <TableCell>Date</TableCell>
-                <TableCell>Flight</TableCell>
-                <TableCell>Route</TableCell>
-                <TableCell>Crew Member</TableCell>
-                <TableCell>Role</TableCell>
-                <TableCell align="center">Score</TableCell>
-                <TableCell align="center">Actions</TableCell>
+              <TableRow
+                sx={{
+                  bgcolor: "#f9fafb",
+                  "& th": {
+                    borderBottom: "1px solid #e8eaed",
+                    py: 1.5,
+                    px: 2.5,
+                  },
+                }}
+              >
+                {[
+                  "Date",
+                  "Flight",
+                  "Route",
+                  "Crew Member",
+                  "Role",
+                  "Score",
+                  "",
+                ].map((col) => (
+                  <TableCell
+                    key={col}
+                    align={col === "Score" || col === "" ? "center" : "left"}
+                    sx={{
+                      fontSize: "0.7rem",
+                      fontWeight: 600,
+                      color: "#6b7280",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.07em",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {col}
+                  </TableCell>
+                ))}
               </TableRow>
             </TableHead>
+
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                      No matching flights found
-                    </Typography>
+                  <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 0.75,
+                      }}
+                    >
+                      <SearchIcon sx={{ fontSize: 28, color: "#e5e7eb" }} />
+                      <Typography
+                        sx={{
+                          fontSize: "0.875rem",
+                          color: "#9ca3af",
+                          fontWeight: 500,
+                        }}
+                      >
+                        No flights match your filters
+                      </Typography>
+                      <Typography
+                        sx={{ fontSize: "0.775rem", color: "#d1d5db" }}
+                      >
+                        Try adjusting your search or filter criteria
+                      </Typography>
+                    </Box>
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map((flight) => {
-                  const scoreColor = getScoreColor(flight.overallScore);
+                filtered.map((flight, idx) => {
+                  const score = getScoreStyle(flight.overallScore);
+                  const role = getRoleStyle(flight.role);
+                  const isLast = idx === filtered.length - 1;
+
                   return (
-                    <TableRow key={flight.id} hover>
+                    <TableRow
+                      key={flight.id}
+                      sx={{
+                        "&:hover": { bgcolor: "#fafafa" },
+                        "& td": {
+                          borderBottom: isLast ? "none" : "1px solid #f3f4f6",
+                          py: 1.75,
+                          px: 2.5,
+                        },
+                        transition: "background-color 0.1s",
+                      }}
+                    >
+                      {/* Date */}
                       <TableCell>
-                        <Typography variant="body2">{flight.date}</Typography>
+                        <Typography
+                          sx={{ fontSize: "0.8rem", color: "#6b7280" }}
+                        >
+                          {flight.date}
+                        </Typography>
                       </TableCell>
+
+                      {/* Flight */}
                       <TableCell>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        <Typography
+                          sx={{
+                            fontSize: "0.825rem",
+                            fontWeight: 600,
+                            color: "#111827",
+                            letterSpacing: "-0.01em",
+                          }}
+                        >
                           {flight.flightNumber}
                         </Typography>
                       </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">{flight.route}</Typography>
-                      </TableCell>
+
+                      {/* Route */}
                       <TableCell>
                         <Typography
-                          variant="body2"
+                          sx={{ fontSize: "0.825rem", color: "#374151" }}
+                        >
+                          {flight.route}
+                        </Typography>
+                      </TableCell>
+
+                      {/* Crew Member */}
+                      <TableCell>
+                        <Typography
                           sx={{
+                            fontSize: "0.825rem",
                             fontWeight: 500,
-                            cursor: 'pointer',
-                            color: 'primary.main',
-                            '&:hover': { textDecoration: 'underline' },
+                            color: "primary.main",
+                            cursor: "pointer",
+                            "&:hover": { textDecoration: "underline" },
                           }}
-                          onClick={() => navigate(`/crew/${flight.crewMemberId}`)}
+                          onClick={() =>
+                            navigate(`/crew/${flight.crewMemberId}`)
+                          }
                         >
                           {flight.crewMemberName}
                         </Typography>
                       </TableCell>
+
+                      {/* Role */}
                       <TableCell>
-                        <Chip
-                          label={flight.role}
-                          size="small"
+                        <Box
                           sx={{
-                            bgcolor: flight.role === 'Purser' ? '#4A1D7014' : '#1976D214',
-                            color: flight.role === 'Purser' ? '#4A1D70' : '#1976D2',
-                            fontWeight: 500,
-                            fontSize: '0.75rem',
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        <Chip
-                          label={`${flight.overallScore}%`}
-                          size="small"
-                          sx={{
-                            bgcolor: scoreColor.bg,
-                            color: scoreColor.text,
+                            display: "inline-flex",
+                            px: 1.5,
+                            py: 0.35,
+                            borderRadius: "6px",
+                            bgcolor: role.bg,
+                            color: role.color,
+                            fontSize: "0.72rem",
                             fontWeight: 600,
+                            whiteSpace: "nowrap",
                           }}
-                        />
+                        >
+                          {flight.role}
+                        </Box>
                       </TableCell>
+
+                      {/* Score */}
+                      <TableCell align="center">
+                        <Box
+                          sx={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 0.6,
+                            px: 1.5,
+                            py: 0.35,
+                            borderRadius: "6px",
+                            bgcolor: score.bg,
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 5,
+                              height: 5,
+                              borderRadius: "50%",
+                              bgcolor: score.dot,
+                              flexShrink: 0,
+                            }}
+                          />
+                          <Typography
+                            sx={{
+                              fontSize: "0.75rem",
+                              fontWeight: 700,
+                              color: score.color,
+                              letterSpacing: "0.01em",
+                            }}
+                          >
+                            {flight.overallScore}%
+                          </Typography>
+                        </Box>
+                      </TableCell>
+
+                      {/* Action */}
                       <TableCell align="center">
                         <Button
                           size="small"
-                          startIcon={<VisibilityIcon />}
-                          sx={{ fontSize: '0.75rem' }}
+                          endIcon={
+                            <ArrowForwardIcon
+                              sx={{ fontSize: "12px !important" }}
+                            />
+                          }
+                          disableElevation
+                          sx={{
+                            fontSize: "0.75rem",
+                            fontWeight: 500,
+                            color: "#374151",
+                            textTransform: "none",
+                            borderRadius: "7px",
+                            px: 1.5,
+                            py: 0.5,
+                            border: "1px solid #e8eaed",
+                            bgcolor: "#ffffff",
+                            "&:hover": {
+                              bgcolor: "#f9fafb",
+                              borderColor: "#d1d5db",
+                            },
+                            whiteSpace: "nowrap",
+                          }}
                         >
-                          View
+                          View Report
                         </Button>
                       </TableCell>
                     </TableRow>

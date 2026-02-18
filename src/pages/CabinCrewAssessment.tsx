@@ -1,38 +1,51 @@
-import { useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
-  Alert,
   Box,
   Button,
   Card,
-  CardContent,
-  Chip,
-  LinearProgress,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
-} from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import WarningIcon from '@mui/icons-material/Warning';
-import { cabinCrewCategories, crewMembers, flights } from '../data/mockData';
-import { ratingColors } from '../theme';
-import type { RatingValue } from '../types';
+  Divider,
+} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import { cabinCrewCategories, crewMembers, flights } from "../data/mockData";
+import { ratingColors } from "../theme";
+import type { RatingValue } from "../types";
 
-const RATING_LABELS: { value: RatingValue; label: string }[] = [
-  { value: 'U', label: 'U' },
-  { value: 'N', label: 'N' },
-  { value: 'M', label: 'M' },
-  { value: 'E', label: 'E' },
-  { value: 'O', label: 'O' },
+const RATING_LABELS: {
+  value: RatingValue;
+  label: string;
+  fullLabel: string;
+}[] = [
+  { value: "U", label: "U", fullLabel: "Unsatisfactory" },
+  { value: "N", label: "N", fullLabel: "Needs Improvement" },
+  { value: "M", label: "M", fullLabel: "Meets Standard" },
+  { value: "E", label: "E", fullLabel: "Exceeds Standard" },
+  { value: "O", label: "O", fullLabel: "Outstanding" },
 ];
 
-const REMARKS_REQUIRED: RatingValue[] = ['U', 'N', 'E', 'O'];
+// Neutral soft palette per rating
+const RATING_STYLES: Record<
+  RatingValue,
+  { selected: string; light: string; text: string }
+> = {
+  U: { selected: "#ef4444", light: "#fef2f2", text: "#dc2626" },
+  N: { selected: "#f97316", light: "#fff7ed", text: "#c2410c" },
+  M: { selected: "#f59e0b", light: "#fffbeb", text: "#d97706" },
+  E: { selected: "#22c55e", light: "#f0fdf4", text: "#15803d" },
+  O: { selected: "#4f6ef7", light: "#eef1fe", text: "#3b4fd8" },
+};
+
+const REMARKS_REQUIRED: RatingValue[] = ["U", "N", "E", "O"];
 
 interface CriterionState {
   rating: RatingValue | null;
@@ -52,65 +65,64 @@ export default function CabinCrewAssessment() {
     const initial: FormState = {};
     cabinCrewCategories.forEach((cat) => {
       cat.criteria.forEach((c) => {
-        initial[c.id] = { rating: null, remarks: '' };
+        initial[c.id] = { rating: null, remarks: "" };
       });
     });
     return initial;
   });
-  const [overallRemarks, setOverallRemarks] = useState('');
-  const [signature, setSignature] = useState('');
+
+  const [overallRemarks, setOverallRemarks] = useState("");
+  const [signature, setSignature] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   const totalCriteria = useMemo(
-    () => cabinCrewCategories.reduce((acc, cat) => acc + cat.criteria.length, 0),
-    []
+    () =>
+      cabinCrewCategories.reduce((acc, cat) => acc + cat.criteria.length, 0),
+    [],
   );
 
   const completedCriteria = useMemo(
     () => Object.values(form).filter((v) => v.rating !== null).length,
-    [form]
+    [form],
   );
 
-  const missingRemarks = useMemo(() => {
-    return Object.entries(form).filter(
-      ([, v]) => v.rating && REMARKS_REQUIRED.includes(v.rating) && v.remarks.trim() === ''
-    );
-  }, [form]);
+  const missingRemarks = useMemo(
+    () =>
+      Object.entries(form).filter(
+        ([, v]) =>
+          v.rating &&
+          REMARKS_REQUIRED.includes(v.rating) &&
+          v.remarks.trim() === "",
+      ),
+    [form],
+  );
 
-  const progress = totalCriteria > 0 ? (completedCriteria / totalCriteria) * 100 : 0;
+  const progress =
+    totalCriteria > 0 ? (completedCriteria / totalCriteria) * 100 : 0;
 
   const overallScore = useMemo(() => {
-    // Calculate category scores (each category's criteria weights sum to 100)
     const categoryScores = cabinCrewCategories.map((cat) => {
-      const catCriteria = cat.criteria.filter((c) => form[c.id]?.rating !== null);
+      const catCriteria = cat.criteria.filter(
+        (c) => form[c.id]?.rating !== null,
+      );
       if (catCriteria.length === 0) return null;
-
       const catTotal = catCriteria.reduce((acc, crit) => {
         const rating = form[crit.id].rating;
         return acc + (rating ? crit.weights[rating] : 0);
       }, 0);
-
-      // If not all criteria rated, proportionally scale the score
-      const allCriteriaMaxScore = cat.criteria.reduce(
-        (acc, c) => acc + c.weights.O,
-        0
-      );
-      const ratedCriteriaMaxScore = catCriteria.reduce(
-        (acc, c) => acc + c.weights.O,
-        0
-      );
-
-      return (catTotal / ratedCriteriaMaxScore) * allCriteriaMaxScore;
+      const ratedMax = catCriteria.reduce((acc, c) => acc + c.weights.O, 0);
+      const allMax = cat.criteria.reduce((acc, c) => acc + c.weights.O, 0);
+      return (catTotal / ratedMax) * allMax;
     });
-
-    const validScores = categoryScores.filter((s): s is number => s !== null);
-    if (validScores.length === 0) return null;
-
-    // Average all category scores
-    return Math.round(validScores.reduce((acc, s) => acc + s, 0) / validScores.length);
+    const valid = categoryScores.filter((s): s is number => s !== null);
+    if (valid.length === 0) return null;
+    return Math.round(valid.reduce((a, s) => a + s, 0) / valid.length);
   }, [form]);
 
-  const handleRatingChange = (criterionId: string, rating: RatingValue | null) => {
+  const handleRatingChange = (
+    criterionId: string,
+    rating: RatingValue | null,
+  ) => {
     setForm((prev) => ({
       ...prev,
       [criterionId]: { ...prev[criterionId], rating },
@@ -125,310 +137,724 @@ export default function CabinCrewAssessment() {
   };
 
   const canSubmit =
-    completedCriteria === totalCriteria && missingRemarks.length === 0 && signature.trim() !== '';
+    completedCriteria === totalCriteria &&
+    missingRemarks.length === 0 &&
+    signature.trim() !== "";
 
-  const handleSubmit = () => {
-    if (!canSubmit) return;
-    setSubmitted(true);
-  };
+  const scoreColor =
+    overallScore !== null
+      ? overallScore >= 80
+        ? "#15803d"
+        : overallScore >= 60
+          ? "#d97706"
+          : "#dc2626"
+      : "#111827";
 
+  // ── Not Found ───────────────────────────────────────────────────────────────
   if (!flight || !crew) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography>Flight or crew member not found.</Typography>
-        <Button onClick={() => navigate('/flight')} sx={{ mt: 2 }}>
+        <Typography sx={{ fontSize: "0.875rem", color: "#6b7280" }}>
+          Flight or crew member not found.
+        </Typography>
+        <Button
+          onClick={() => navigate("/flight")}
+          sx={{ mt: 2, textTransform: "none", fontSize: "0.825rem" }}
+        >
           Back to Flight
         </Button>
       </Box>
     );
   }
 
+  // ── Submitted ───────────────────────────────────────────────────────────────
   if (submitted) {
     return (
-      <Box sx={{ maxWidth: 700, mx: 'auto', mt: 4 }}>
-        <Card>
-          <CardContent sx={{ textAlign: 'center', py: 4 }}>
-            <CheckCircleIcon sx={{ fontSize: 64, color: 'success.main', mb: 2 }} />
-            <Typography variant="h5" sx={{ mb: 1 }}>
+      <Box sx={{ maxWidth: 620, mx: "auto", mt: 4 }}>
+        <Card
+          elevation={0}
+          sx={{
+            border: "1px solid #e8eaed",
+            borderRadius: "12px",
+            bgcolor: "#ffffff",
+          }}
+        >
+          <Box
+            sx={{
+              p: 4,
+              textAlign: "center",
+              borderBottom: "1px solid #f3f4f6",
+            }}
+          >
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: "50%",
+                bgcolor: "#f0fdf4",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                mx: "auto",
+                mb: 2,
+              }}
+            >
+              <CheckCircleIcon sx={{ fontSize: 26, color: "#22c55e" }} />
+            </Box>
+
+            <Typography
+              sx={{
+                fontSize: "1.05rem",
+                fontWeight: 600,
+                color: "#111827",
+                letterSpacing: "-0.02em",
+                mb: 0.5,
+              }}
+            >
               Evaluation Submitted
             </Typography>
-            <Typography variant="body2" sx={{ mb: 1 }}>
-              {crew.name} — {flight.flightNumber} {flight.route}
-            </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', mb: 3 }}>
-              {overallScore}%
+            <Typography
+              sx={{ fontSize: "0.825rem", color: "#6b7280", mb: 2.5 }}
+            >
+              {crew.name}&nbsp;·&nbsp;{flight.flightNumber}&nbsp;·&nbsp;
+              {flight.route}
             </Typography>
 
-            <Typography variant="h6" sx={{ mb: 2, textAlign: 'left' }}>
+            <Box
+              sx={{
+                display: "inline-flex",
+                flexDirection: "column",
+                alignItems: "center",
+                px: 3,
+                py: 1.5,
+                borderRadius: "10px",
+                border: "1px solid #e8eaed",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "0.62rem",
+                  fontWeight: 600,
+                  color: "#9ca3af",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  mb: 0.25,
+                }}
+              >
+                Overall Score
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: "2rem",
+                  fontWeight: 700,
+                  color: scoreColor,
+                  letterSpacing: "-0.03em",
+                  lineHeight: 1,
+                }}
+              >
+                {overallScore}%
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Category Breakdown */}
+          <Box sx={{ p: 3 }}>
+            <Typography
+              sx={{
+                fontSize: "0.72rem",
+                fontWeight: 600,
+                color: "#9ca3af",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                mb: 1.5,
+              }}
+            >
               Category Breakdown
             </Typography>
-            {cabinCrewCategories.map((cat) => {
-              const ratedCriteria = cat.criteria.filter((c) => form[c.id]?.rating !== null);
+
+            {cabinCrewCategories.map((cat, idx) => {
+              const ratedCriteria = cat.criteria.filter(
+                (c) => form[c.id]?.rating !== null,
+              );
               const catScore =
                 ratedCriteria.length > 0
                   ? Math.round(
                       ratedCriteria.reduce((acc, crit) => {
                         const rating = form[crit.id].rating;
                         return acc + (rating ? crit.weights[rating] : 0);
-                      }, 0)
+                      }, 0),
                     )
                   : 0;
+              const isLast = idx === cabinCrewCategories.length - 1;
+              const cs =
+                catScore >= 75
+                  ? "#15803d"
+                  : catScore >= 55
+                    ? "#d97706"
+                    : "#dc2626";
+
               return (
-                <Box
-                  key={cat.id}
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    py: 1,
-                    borderBottom: '1px solid #F0F0F5',
-                  }}
-                >
-                  <Typography variant="body2">{cat.name}</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {catScore}%
-                  </Typography>
+                <Box key={cat.id}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      py: 1.5,
+                    }}
+                  >
+                    <Typography sx={{ fontSize: "0.825rem", color: "#374151" }}>
+                      {cat.name}
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: "0.825rem", fontWeight: 600, color: cs }}
+                    >
+                      {catScore}%
+                    </Typography>
+                  </Box>
+                  {!isLast && <Divider sx={{ borderColor: "#f3f4f6" }} />}
                 </Box>
               );
             })}
+          </Box>
 
-            {Object.entries(form).some(
-              ([, v]) => v.rating === 'U' || v.rating === 'N'
-            ) && (
-              <Alert severity="warning" sx={{ mt: 2, textAlign: 'left' }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                  Flagged Items
-                </Typography>
-                {Object.entries(form)
-                  .filter(([, v]) => v.rating === 'U' || v.rating === 'N')
-                  .map(([id, v]) => {
-                    const name = cabinCrewCategories
-                      .flatMap((c) => c.criteria)
-                      .find((c) => c.id === id)?.name;
-                    return (
-                      <Typography key={id} variant="body2">
-                        — {name}: {v.rating === 'U' ? 'Unsatisfactory' : 'Needs Improvement'}
-                      </Typography>
-                    );
-                  })}
-              </Alert>
-            )}
+          <Divider sx={{ borderColor: "#f3f4f6" }} />
 
-            <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'center' }}>
-              <Button variant="outlined" onClick={() => navigate('/flight')}>
-                Back to Flight
-              </Button>
-              <Button
-                variant="contained"
-                onClick={() => {
-                  setSubmitted(false);
-                }}
-              >
-                Re-Evaluate
-              </Button>
-            </Box>
-          </CardContent>
+          <Box
+            sx={{ p: 3, display: "flex", gap: 1.5, justifyContent: "flex-end" }}
+          >
+            <Button
+              onClick={() => navigate("/flight")}
+              disableElevation
+              sx={{
+                fontSize: "0.8rem",
+                fontWeight: 500,
+                textTransform: "none",
+                borderRadius: "8px",
+                border: "1px solid #e8eaed",
+                color: "#374151",
+                "&:hover": { bgcolor: "#f9fafb", borderColor: "#d1d5db" },
+              }}
+            >
+              Back to Flight
+            </Button>
+            <Button
+              variant="contained"
+              disableElevation
+              onClick={() => setSubmitted(false)}
+              sx={{
+                fontSize: "0.8rem",
+                fontWeight: 500,
+                textTransform: "none",
+                borderRadius: "8px",
+                bgcolor: "#111827",
+                "&:hover": { bgcolor: "#1f2937" },
+              }}
+            >
+              Start New Evaluation
+            </Button>
+          </Box>
         </Card>
       </Box>
     );
   }
 
+  // ── Main Form ───────────────────────────────────────────────────────────────
   return (
-    <Box sx={{ maxWidth: 860, mx: 'auto' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/flight')}
-          size="small"
-          sx={{ color: 'text.secondary' }}
+    <Box>
+      {/* Back */}
+      <Button
+        startIcon={<ArrowBackIcon sx={{ fontSize: "15px !important" }} />}
+        onClick={() => navigate("/flight")}
+        disableElevation
+        sx={{
+          fontSize: "0.8rem",
+          fontWeight: 500,
+          color: "#6b7280",
+          textTransform: "none",
+          mb: 2.5,
+          px: 0,
+          "&:hover": { bgcolor: "transparent", color: "#374151" },
+        }}
+      >
+        Back to Flight
+      </Button>
+
+      {/* Header Card */}
+      <Card
+        elevation={0}
+        sx={{
+          border: "1px solid #e8eaed",
+          borderRadius: "12px",
+          bgcolor: "#ffffff",
+          mb: 2,
+        }}
+      >
+        <Box
+          sx={{
+            px: 3,
+            py: 2.5,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 2,
+          }}
         >
-          Back
-        </Button>
-      </Box>
-
-      <Card sx={{ mb: 2 }}>
-        <CardContent sx={{ py: 2 }}>
-          <Typography variant="h5" sx={{ mb: 0.5 }}>
-            Cabin Crew Assessment — {crew.name}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {flight.flightNumber} &bull; {flight.route} &bull; {flight.date} &bull; ID: {crew.id}
-          </Typography>
-        </CardContent>
-      </Card>
-
-      {/* Progress */}
-      <Card sx={{ mb: 2 }}>
-        <CardContent sx={{ py: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              Progress: {completedCriteria}/{totalCriteria} criteria rated
+          <Box>
+            <Typography
+              sx={{
+                fontSize: "1rem",
+                fontWeight: 600,
+                color: "#111827",
+                letterSpacing: "-0.02em",
+                mb: 0.4,
+              }}
+            >
+              Cabin Crew Assessment — {crew.name}
             </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              {Math.round(progress)}%
-            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                flexWrap: "wrap",
+              }}
+            >
+              {[flight.flightNumber, flight.route, flight.date, crew.id].map(
+                (val, i) => (
+                  <Box
+                    key={i}
+                    sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
+                  >
+                    {i > 0 && (
+                      <Box
+                        sx={{
+                          width: 3,
+                          height: 3,
+                          borderRadius: "50%",
+                          bgcolor: "#e5e7eb",
+                        }}
+                      />
+                    )}
+                    <Typography sx={{ fontSize: "0.775rem", color: "#6b7280" }}>
+                      {val}
+                    </Typography>
+                  </Box>
+                ),
+              )}
+            </Box>
           </Box>
-          <LinearProgress
-            variant="determinate"
-            value={progress}
-            sx={{
-              height: 8,
-              borderRadius: 4,
-              bgcolor: '#E8E8EE',
-              '& .MuiLinearProgress-bar': { bgcolor: 'primary.main', borderRadius: 4 },
-            }}
-          />
-          {missingRemarks.length > 0 && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}>
-              <WarningIcon sx={{ fontSize: 16, color: 'warning.main' }} />
-              <Typography variant="caption" sx={{ color: 'warning.main' }}>
-                {missingRemarks.length} rating(s) require remarks
+
+          {/* Live Score */}
+          {overallScore !== null && (
+            <Box
+              sx={{
+                px: 2,
+                py: 1,
+                borderRadius: "8px",
+                border: "1px solid #e8eaed",
+                textAlign: "center",
+                minWidth: 80,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "0.62rem",
+                  fontWeight: 600,
+                  color: "#9ca3af",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.07em",
+                  mb: 0.25,
+                }}
+              >
+                Score
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: "1.3rem",
+                  fontWeight: 700,
+                  color: scoreColor,
+                  letterSpacing: "-0.03em",
+                  lineHeight: 1,
+                }}
+              >
+                {overallScore}%
               </Typography>
             </Box>
           )}
-        </CardContent>
+        </Box>
+
+        <Divider sx={{ borderColor: "#f3f4f6" }} />
+
+        {/* Progress */}
+        <Box sx={{ px: 3, py: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 1,
+            }}
+          >
+            <Typography
+              sx={{ fontSize: "0.775rem", color: "#6b7280", fontWeight: 500 }}
+            >
+              {completedCriteria} of {totalCriteria} criteria rated
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: "0.775rem",
+                fontWeight: 600,
+                color: progress === 100 ? "#15803d" : "#374151",
+              }}
+            >
+              {Math.round(progress)}%
+            </Typography>
+          </Box>
+
+          <Box
+            sx={{
+              height: 5,
+              bgcolor: "#f3f4f6",
+              borderRadius: "3px",
+              overflow: "hidden",
+            }}
+          >
+            <Box
+              sx={{
+                height: "100%",
+                width: `${progress}%`,
+                bgcolor: progress === 100 ? "#22c55e" : "primary.main",
+                borderRadius: "3px",
+                transition: "width 0.3s ease",
+              }}
+            />
+          </Box>
+
+          {missingRemarks.length > 0 && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.75,
+                mt: 1.25,
+                px: 1.5,
+                py: 0.75,
+                borderRadius: "6px",
+                bgcolor: "#fef2f2",
+              }}
+            >
+              <WarningAmberIcon
+                sx={{ fontSize: 14, color: "#dc2626", flexShrink: 0 }}
+              />
+              <Typography
+                sx={{ fontSize: "0.75rem", color: "#dc2626", fontWeight: 500 }}
+              >
+                {missingRemarks.length} rating
+                {missingRemarks.length > 1 ? "s" : ""} require remarks before
+                submission
+              </Typography>
+            </Box>
+          )}
+        </Box>
       </Card>
 
       {/* Rating Legend */}
-      <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-        {[
-          { key: 'U', label: 'Unsatisfactory' },
-          { key: 'N', label: 'Needs Improvement' },
-          { key: 'M', label: 'Meets Standard' },
-          { key: 'E', label: 'Exceeds Standard' },
-          { key: 'O', label: 'Outstanding' },
-        ].map((r) => (
-          <Chip
-            key={r.key}
-            label={`${r.key} — ${r.label}`}
-            size="small"
-            sx={{
-              bgcolor: `${ratingColors[r.key]}14`,
-              color: ratingColors[r.key],
-              fontWeight: 500,
-              fontSize: '0.7rem',
-            }}
-          />
-        ))}
+      <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap", px: 0.5 }}>
+        {RATING_LABELS.map((r) => {
+          const s = RATING_STYLES[r.value];
+          return (
+            <Box
+              key={r.value}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.75,
+                px: 1.25,
+                py: 0.45,
+                borderRadius: "6px",
+                bgcolor: s.light,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: "4px",
+                  bgcolor: s.selected,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Typography
+                  sx={{ fontSize: "0.6rem", fontWeight: 800, color: "#fff" }}
+                >
+                  {r.label}
+                </Typography>
+              </Box>
+              <Typography
+                sx={{ fontSize: "0.72rem", color: s.text, fontWeight: 500 }}
+              >
+                {r.fullLabel}
+              </Typography>
+            </Box>
+          );
+        })}
       </Box>
 
-      <Alert severity="info" sx={{ mb: 2, fontSize: '0.75rem' }}>
-        <Typography variant="caption" sx={{ display: 'block', fontWeight: 600, mb: 0.5 }}>
-          Remarks Requirements:
-        </Typography>
-        <Typography variant="caption" sx={{ display: 'block' }}>
-          • <strong>U / N</strong>: Mandatory remarks highlighting gaps and recommended actions
-        </Typography>
-        <Typography variant="caption" sx={{ display: 'block' }}>
-          • <strong>M</strong>: Remarks optional but encouraged
-        </Typography>
-        <Typography variant="caption" sx={{ display: 'block' }}>
-          • <strong>E / O</strong>: Mandatory remarks acknowledging strengths and positive impact
-        </Typography>
-      </Alert>
-
-      {/* Categories */}
+      {/* Category Accordions */}
       {cabinCrewCategories.map((category) => {
-        const catCompleted = category.criteria.filter((c) => form[c.id].rating !== null).length;
+        const catCompleted = category.criteria.filter(
+          (c) => form[c.id].rating !== null,
+        ).length;
+        const isComplete = catCompleted === category.criteria.length;
+
         return (
-          <Accordion key={category.id} defaultExpanded sx={{ mb: 1, '&:before': { display: 'none' } }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-                <Typography variant="subtitle1" sx={{ flex: 1 }}>
+          <Accordion
+            key={category.id}
+            defaultExpanded
+            elevation={0}
+            sx={{
+              border: "1px solid #e8eaed",
+              borderRadius: "12px !important",
+              mb: 1.5,
+              overflow: "hidden",
+              "&:before": { display: "none" },
+            }}
+          >
+            <AccordionSummary
+              expandIcon={
+                <ExpandMoreIcon sx={{ fontSize: 18, color: "#9ca3af" }} />
+              }
+              sx={{
+                px: 3,
+                py: 0,
+                minHeight: "52px !important",
+                bgcolor: "#fafafa",
+                borderBottom: "1px solid #f3f4f6",
+                "& .MuiAccordionSummary-content": { my: "14px !important" },
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2,
+                  width: "100%",
+                  pr: 1,
+                }}
+              >
+                <Typography
+                  sx={{
+                    flex: 1,
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    color: "#111827",
+                    letterSpacing: "-0.01em",
+                  }}
+                >
                   {category.name}
                 </Typography>
-                <Chip
-                  label={`${catCompleted}/${category.criteria.length}`}
-                  size="small"
+
+                <Box
                   sx={{
-                    bgcolor: catCompleted === category.criteria.length ? '#E8F5E9' : '#F5F5F7',
-                    color: catCompleted === category.criteria.length ? '#2E7D32' : '#5A5A7A',
-                    fontWeight: 500,
-                    mr: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.6,
+                    px: 1.25,
+                    py: 0.3,
+                    borderRadius: "6px",
+                    bgcolor: isComplete ? "#f0fdf4" : "#f3f4f6",
                   }}
-                />
-              </Box>
-            </AccordionSummary>
-            <AccordionDetails>
-              {category.criteria.map((criterion) => {
-                const state = form[criterion.id];
-                const needsRemarks =
-                  state.rating !== null && REMARKS_REQUIRED.includes(state.rating) && state.remarks.trim() === '';
-                return (
-                  <Box
-                    key={criterion.id}
+                >
+                  {isComplete && (
+                    <CheckCircleIcon sx={{ fontSize: 11, color: "#22c55e" }} />
+                  )}
+                  <Typography
                     sx={{
-                      mb: 2,
-                      pb: 2,
-                      borderBottom: '1px solid #F0F0F5',
-                      '&:last-child': { borderBottom: 'none', mb: 0, pb: 0 },
+                      fontSize: "0.7rem",
+                      fontWeight: 600,
+                      color: isComplete ? "#15803d" : "#6b7280",
                     }}
                   >
-                    <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-                      {criterion.name}
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, flexWrap: 'wrap' }}>
+                    {catCompleted}/{category.criteria.length}
+                  </Typography>
+                </Box>
+              </Box>
+            </AccordionSummary>
+
+            <AccordionDetails sx={{ p: 0 }}>
+              {category.criteria.map((criterion, idx) => {
+                const state = form[criterion.id];
+                const needsRemarks =
+                  state.rating !== null &&
+                  REMARKS_REQUIRED.includes(state.rating) &&
+                  state.remarks.trim() === "";
+                const isLast = idx === category.criteria.length - 1;
+                const ratingStyle = state.rating
+                  ? RATING_STYLES[state.rating]
+                  : null;
+
+                return (
+                  <Box key={criterion.id}>
+                    <Box sx={{ px: 3, py: 2.5 }}>
+                      {/* Label row */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "flex-start",
+                          justifyContent: "space-between",
+                          gap: 2,
+                          mb: 1.5,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: "0.825rem",
+                            fontWeight: 500,
+                            color: "#111827",
+                            flex: 1,
+                            minWidth: 180,
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {criterion.name}
+                        </Typography>
+
+                        {/* Weight badge — shown when rated */}
+                        {state.rating && ratingStyle && (
+                          <Box
+                            sx={{
+                              px: 1.25,
+                              py: 0.3,
+                              borderRadius: "6px",
+                              bgcolor: ratingStyle.light,
+                              flexShrink: 0,
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                fontSize: "0.7rem",
+                                fontWeight: 600,
+                                color: ratingStyle.text,
+                              }}
+                            >
+                              Weight: {criterion.weights[state.rating]}%
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+
+                      {/* Rating Buttons */}
                       <ToggleButtonGroup
                         exclusive
                         value={state.rating}
-                        onChange={(_, val) => handleRatingChange(criterion.id, val)}
+                        onChange={(_, val) =>
+                          handleRatingChange(criterion.id, val)
+                        }
                         size="small"
+                        sx={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: 0.75,
+                          mb: state.rating ? 1.5 : 0,
+                          "& .MuiToggleButtonGroup-grouped": {
+                            border: "none !important",
+                            borderRadius: "8px !important",
+                          },
+                        }}
                       >
-                        {RATING_LABELS.map((r) => (
-                          <ToggleButton
-                            key={r.value}
-                            value={r.value}
-                            sx={{
-                              px: 2,
-                              fontWeight: 600,
-                              fontSize: '0.8rem',
-                              borderColor: '#E8E8EE',
-                              '&.Mui-selected': {
-                                bgcolor: ratingColors[r.value],
-                                color: '#fff',
-                                '&:hover': { bgcolor: ratingColors[r.value] },
-                              },
-                            }}
-                          >
-                            {r.label}
-                          </ToggleButton>
-                        ))}
+                        {RATING_LABELS.map((r) => {
+                          const s = RATING_STYLES[r.value];
+                          const isSelected = state.rating === r.value;
+                          return (
+                            <ToggleButton
+                              key={r.value}
+                              value={r.value}
+                              sx={{
+                                px: 2,
+                                py: 0.6,
+                                fontSize: "0.775rem",
+                                fontWeight: 600,
+                                textTransform: "none",
+                                letterSpacing: "-0.01em",
+                                border: `1px solid ${isSelected ? s.selected : "#e8eaed"} !important`,
+                                borderRadius: "8px !important",
+                                color: isSelected ? "#fff" : "#6b7280",
+                                bgcolor: isSelected ? s.selected : "#fff",
+                                "&:hover": {
+                                  bgcolor: isSelected ? s.selected : s.light,
+                                  color: isSelected ? "#fff" : s.text,
+                                },
+                                "&.Mui-selected": {
+                                  bgcolor: s.selected,
+                                  color: "#fff",
+                                  "&:hover": { bgcolor: s.selected },
+                                },
+                              }}
+                            >
+                              <span style={{ marginRight: 5 }}>{r.label}</span>
+                              <span
+                                style={{
+                                  fontSize: "0.68rem",
+                                  fontWeight: 400,
+                                  opacity: isSelected ? 0.85 : 0.55,
+                                }}
+                              >
+                                {r.fullLabel}
+                              </span>
+                            </ToggleButton>
+                          );
+                        })}
                       </ToggleButtonGroup>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        {state.rating && `Weight: ${criterion.weights[state.rating]}%`}
-                      </Typography>
-                    </Box>
-                    {state.rating && REMARKS_REQUIRED.includes(state.rating) && (
-                      <Box>
+
+                      {/* Remarks — shown when rating is selected */}
+                      {state.rating && (
                         <TextField
                           fullWidth
                           size="small"
                           multiline
-                          minRows={2}
-                          placeholder={`Remarks required for rating "${state.rating}"`}
-                          value={state.remarks}
-                          onChange={(e) => handleRemarksChange(criterion.id, e.target.value)}
-                          error={needsRemarks}
-                          helperText={
+                          minRows={needsRemarks ? 2 : 1}
+                          placeholder={
                             needsRemarks
-                              ? 'Remarks are mandatory for this rating'
-                              : `${state.remarks.length}/500 characters`
+                              ? "Remarks are required for this rating…"
+                              : "Add observations (optional)…"
                           }
-                          slotProps={{ htmlInput: { maxLength: 500 } }}
-                          sx={{ mt: 1 }}
+                          value={state.remarks}
+                          onChange={(e) =>
+                            handleRemarksChange(criterion.id, e.target.value)
+                          }
+                          error={needsRemarks}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: "8px",
+                              fontSize: "0.8rem",
+                              bgcolor: needsRemarks ? "#fff8f8" : "#fafafa",
+                              "& fieldset": {
+                                borderColor: needsRemarks
+                                  ? "#fca5a5"
+                                  : "#e8eaed",
+                              },
+                              "&:hover fieldset": {
+                                borderColor: needsRemarks
+                                  ? "#f87171"
+                                  : "#d1d5db",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: needsRemarks
+                                  ? "#ef4444"
+                                  : "#4f6ef7",
+                                borderWidth: 1.5,
+                              },
+                            },
+                          }}
                         />
-                      </Box>
-                    )}
-                    {state.rating && !REMARKS_REQUIRED.includes(state.rating) && (
-                      <TextField
-                        fullWidth
-                        size="small"
-                        placeholder="Optional remarks"
-                        value={state.remarks}
-                        onChange={(e) => handleRemarksChange(criterion.id, e.target.value)}
-                        slotProps={{ htmlInput: { maxLength: 500 } }}
-                        sx={{ mt: 1 }}
-                      />
-                    )}
+                      )}
+                    </Box>
+                    {!isLast && <Divider sx={{ borderColor: "#f3f4f6" }} />}
                   </Box>
                 );
               })}
@@ -437,62 +863,171 @@ export default function CabinCrewAssessment() {
         );
       })}
 
-      {/* Overall Remarks & Signature */}
-      <Card sx={{ mt: 2 }}>
-        <CardContent>
-          <Typography variant="h6" sx={{ mb: 2 }}>
+      {/* Final Review */}
+      <Card
+        elevation={0}
+        sx={{
+          border: "1px solid #e8eaed",
+          borderRadius: "12px",
+          bgcolor: "#ffffff",
+          mt: 2,
+        }}
+      >
+        <Box sx={{ px: 3, pt: 3, pb: 2 }}>
+          <Typography
+            sx={{
+              fontSize: "0.9rem",
+              fontWeight: 600,
+              color: "#111827",
+              letterSpacing: "-0.01em",
+              mb: 0.25,
+            }}
+          >
             Final Review
           </Typography>
+          <Typography sx={{ fontSize: "0.775rem", color: "#9ca3af", mb: 2.5 }}>
+            Add any closing observations before submission.
+          </Typography>
+
           <TextField
             fullWidth
             multiline
             minRows={3}
-            label="Overall Remarks"
-            placeholder="Enter any final observations or comments..."
+            placeholder="Enter overall remarks or observations…"
             value={overallRemarks}
             onChange={(e) => setOverallRemarks(e.target.value)}
-            sx={{ mb: 2 }}
+            sx={{
+              mb: 2,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "8px",
+                fontSize: "0.825rem",
+                "& fieldset": { borderColor: "#e8eaed" },
+                "&:hover fieldset": { borderColor: "#d1d5db" },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#4f6ef7",
+                  borderWidth: 1.5,
+                },
+              },
+            }}
           />
+
           <TextField
             fullWidth
-            label="Evaluator Signature"
-            placeholder="Enter your full name"
+            placeholder="Evaluator full name (digital signature)…"
             value={signature}
             onChange={(e) => setSignature(e.target.value)}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "8px",
+                fontSize: "0.825rem",
+                "& fieldset": { borderColor: "#e8eaed" },
+                "&:hover fieldset": { borderColor: "#d1d5db" },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#4f6ef7",
+                  borderWidth: 1.5,
+                },
+              },
+            }}
           />
-        </CardContent>
+        </Box>
+
+        <Divider sx={{ borderColor: "#f3f4f6" }} />
+
+        {/* Validation notice */}
+        {(completedCriteria < totalCriteria || missingRemarks.length > 0) && (
+          <Box
+            sx={{
+              mx: 3,
+              mt: 2,
+              px: 2,
+              py: 1.5,
+              borderRadius: "8px",
+              bgcolor: "#fffbeb",
+              border: "1px solid #fde68a",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 1,
+            }}
+          >
+            <WarningAmberIcon
+              sx={{ fontSize: 15, color: "#d97706", mt: 0.1, flexShrink: 0 }}
+            />
+            <Box>
+              {completedCriteria < totalCriteria && (
+                <Typography
+                  sx={{
+                    fontSize: "0.775rem",
+                    color: "#92400e",
+                    fontWeight: 500,
+                  }}
+                >
+                  {totalCriteria - completedCriteria} criteria not yet rated
+                </Typography>
+              )}
+              {missingRemarks.length > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: "0.775rem",
+                    color: "#92400e",
+                    fontWeight: 500,
+                  }}
+                >
+                  {missingRemarks.length} item
+                  {missingRemarks.length > 1 ? "s" : ""} require remarks before
+                  submitting
+                </Typography>
+              )}
+            </Box>
+          </Box>
+        )}
+
+        {/* Actions */}
+        <Box
+          sx={{
+            px: 3,
+            py: 2.5,
+            display: "flex",
+            gap: 1.5,
+            justifyContent: "flex-end",
+          }}
+        >
+          <Button
+            disableElevation
+            sx={{
+              fontSize: "0.8rem",
+              fontWeight: 500,
+              textTransform: "none",
+              borderRadius: "8px",
+              border: "1px solid #e8eaed",
+              color: "#374151",
+              px: 2.5,
+              "&:hover": { bgcolor: "#f9fafb", borderColor: "#d1d5db" },
+            }}
+          >
+            Save Draft
+          </Button>
+          <Button
+            variant="contained"
+            disableElevation
+            disabled={!canSubmit}
+            onClick={() => canSubmit && setSubmitted(true)}
+            sx={{
+              fontSize: "0.8rem",
+              fontWeight: 500,
+              textTransform: "none",
+              borderRadius: "8px",
+              px: 2.5,
+              bgcolor: "#111827",
+              "&:hover": { bgcolor: "#1f2937" },
+              "&.Mui-disabled": { bgcolor: "#f3f4f6", color: "#9ca3af" },
+            }}
+          >
+            Submit Evaluation
+          </Button>
+        </Box>
       </Card>
 
-      {/* Validation Warnings */}
-      {(completedCriteria < totalCriteria || missingRemarks.length > 0) && (
-        <Alert severity="info" sx={{ mt: 2 }}>
-          {completedCriteria < totalCriteria && (
-            <Typography variant="body2">
-              {totalCriteria - completedCriteria} criteria not yet rated.
-            </Typography>
-          )}
-          {missingRemarks.length > 0 && (
-            <Typography variant="body2">
-              {missingRemarks.length} rating(s) require remarks before submission.
-            </Typography>
-          )}
-        </Alert>
-      )}
-
-      {/* Actions */}
-      <Box sx={{ display: 'flex', gap: 2, mt: 2, mb: 4, justifyContent: 'flex-end' }}>
-        <Button variant="outlined" size="large">
-          Save Draft
-        </Button>
-        <Button
-          variant="contained"
-          size="large"
-          disabled={!canSubmit}
-          onClick={handleSubmit}
-        >
-          Submit Evaluation
-        </Button>
-      </Box>
+      <Box sx={{ mb: 4 }} />
     </Box>
   );
 }

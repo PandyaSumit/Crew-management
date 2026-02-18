@@ -1,36 +1,42 @@
-import { useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Alert,
   Box,
   Button,
   Card,
-  CardContent,
-  Chip,
-  LinearProgress,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
   Typography,
-} from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import StarIcon from '@mui/icons-material/Star';
-import WarningIcon from '@mui/icons-material/Warning';
-import { purserSections, crewMembers, flights } from '../data/mockData';
-import { purserRatingColors } from '../theme';
-import type { PurserRating } from '../types';
+  Divider,
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import BoltIcon from "@mui/icons-material/Bolt";
+import { purserSections, crewMembers, flights } from "../data/mockData";
+import { purserRatingColors } from "../theme";
+import type { PurserRating } from "../types";
 
 const RATING_LABELS: { value: PurserRating; label: string; full: string }[] = [
-  { value: 'N', label: 'N', full: 'Needs Improvement' },
-  { value: 'R', label: 'R', full: 'Meets Requirements' },
-  { value: 'A', label: 'A', full: 'Above Standard' },
+  { value: "N", label: "N", full: "Needs Improvement" },
+  { value: "R", label: "R", full: "Meets Requirements" },
+  { value: "A", label: "A", full: "Above Standard" },
 ];
+
+const RATING_STYLES: Record<
+  PurserRating,
+  { selected: string; text: string; light: string }
+> = {
+  N: { selected: "#ef4444", text: "#ef4444", light: "#fef2f2" },
+  R: { selected: "#f59e0b", text: "#d97706", light: "#fffbeb" },
+  A: { selected: "#22c55e", text: "#16a34a", light: "#f0fdf4" },
+};
 
 interface ItemState {
   rating: PurserRating | null;
@@ -50,32 +56,38 @@ export default function PurserAssessment() {
     const initial: FormState = {};
     purserSections.forEach((sec) => {
       sec.items.forEach((item) => {
-        initial[item.id] = { rating: null, remarks: '' };
+        initial[item.id] = { rating: null, remarks: "" };
       });
     });
     return initial;
   });
-  const [overallRemarks, setOverallRemarks] = useState('');
-  const [signature, setSignature] = useState('');
+
+  const [overallRemarks, setOverallRemarks] = useState("");
+  const [signature, setSignature] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   const totalItems = useMemo(
     () => purserSections.reduce((acc, sec) => acc + sec.items.length, 0),
-    []
+    [],
   );
 
   const completedItems = useMemo(
     () => Object.values(form).filter((v) => v.rating !== null).length,
-    [form]
+    [form],
   );
 
-  const safetyCriticalItems = useMemo(() => {
-    return purserSections.flatMap((sec) => sec.items.filter((item) => item.isSafetyCritical));
-  }, []);
+  const safetyCriticalItems = useMemo(
+    () =>
+      purserSections.flatMap((sec) =>
+        sec.items.filter((item) => item.isSafetyCritical),
+      ),
+    [],
+  );
 
-  const unratedSafetyCritical = useMemo(() => {
-    return safetyCriticalItems.filter((item) => form[item.id].rating === null);
-  }, [safetyCriticalItems, form]);
+  const unratedSafetyCritical = useMemo(
+    () => safetyCriticalItems.filter((item) => form[item.id].rating === null),
+    [safetyCriticalItems, form],
+  );
 
   const progress = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
 
@@ -83,265 +95,762 @@ export default function PurserAssessment() {
     const rated = Object.values(form).filter((v) => v.rating !== null);
     if (rated.length === 0) return null;
     const scoreMap: Record<PurserRating, number> = { N: 33, R: 66, A: 100 };
-    const total = rated.reduce((acc, v) => acc + (v.rating ? scoreMap[v.rating] : 0), 0);
+    const total = rated.reduce(
+      (acc, v) => acc + (v.rating ? scoreMap[v.rating] : 0),
+      0,
+    );
     return Math.round(total / rated.length);
   }, [form]);
 
   const handleRatingChange = (itemId: string, rating: PurserRating | null) => {
-    setForm((prev) => ({
-      ...prev,
-      [itemId]: { ...prev[itemId], rating },
-    }));
+    setForm((prev) => ({ ...prev, [itemId]: { ...prev[itemId], rating } }));
   };
 
   const handleRemarksChange = (itemId: string, remarks: string) => {
-    setForm((prev) => ({
-      ...prev,
-      [itemId]: { ...prev[itemId], remarks },
-    }));
+    setForm((prev) => ({ ...prev, [itemId]: { ...prev[itemId], remarks } }));
   };
 
   const canSubmit =
-    completedItems === totalItems && unratedSafetyCritical.length === 0 && signature.trim() !== '';
+    completedItems === totalItems &&
+    unratedSafetyCritical.length === 0 &&
+    signature.trim() !== "";
 
   const handleSubmit = () => {
     if (!canSubmit) return;
     setSubmitted(true);
   };
 
+  const scoreColor =
+    overallScore !== null
+      ? overallScore >= 80
+        ? "#15803d"
+        : overallScore >= 60
+          ? "#d97706"
+          : "#dc2626"
+      : "#111827";
+
+  // ── Not Found ──────────────────────────────────────────────────────────────
   if (!flight || !crew) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography>Flight or crew member not found.</Typography>
-        <Button onClick={() => navigate('/flight')} sx={{ mt: 2 }}>
+        <Typography sx={{ fontSize: "0.875rem", color: "#6b7280" }}>
+          Flight or crew member not found.
+        </Typography>
+        <Button
+          onClick={() => navigate("/flight")}
+          sx={{ mt: 2, textTransform: "none", fontSize: "0.825rem" }}
+        >
           Back to Flight
         </Button>
       </Box>
     );
   }
 
+  // ── Submitted State ────────────────────────────────────────────────────────
   if (submitted) {
+    const scoreMap: Record<PurserRating, number> = { N: 33, R: 66, A: 100 };
+
     return (
-      <Box sx={{ maxWidth: 700, mx: 'auto', mt: 4 }}>
-        <Card>
-          <CardContent sx={{ textAlign: 'center', py: 4 }}>
-            <CheckCircleIcon sx={{ fontSize: 64, color: 'success.main', mb: 2 }} />
-            <Typography variant="h5" sx={{ mb: 1 }}>
-              Purser Evaluation Submitted
+      <Box sx={{ maxWidth: 640, mx: "auto", mt: 4 }}>
+        <Card
+          elevation={0}
+          sx={{
+            border: "1px solid #e8eaed",
+            borderRadius: "12px",
+            bgcolor: "#ffffff",
+          }}
+        >
+          <Box
+            sx={{
+              p: 4,
+              textAlign: "center",
+              borderBottom: "1px solid #f3f4f6",
+            }}
+          >
+            <Box
+              sx={{
+                width: 52,
+                height: 52,
+                borderRadius: "50%",
+                bgcolor: "#f0fdf4",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                mx: "auto",
+                mb: 2,
+              }}
+            >
+              <CheckCircleIcon sx={{ fontSize: 28, color: "#22c55e" }} />
+            </Box>
+
+            <Typography
+              sx={{
+                fontSize: "1.1rem",
+                fontWeight: 600,
+                color: "#111827",
+                letterSpacing: "-0.02em",
+                mb: 0.5,
+              }}
+            >
+              Evaluation Submitted
             </Typography>
-            <Typography variant="body2" sx={{ mb: 1 }}>
-              {crew.name} — {flight.flightNumber} {flight.route}
-            </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', mb: 3 }}>
-              {overallScore}%
+            <Typography
+              sx={{ fontSize: "0.825rem", color: "#6b7280", mb: 2.5 }}
+            >
+              {crew.name} &nbsp;·&nbsp; {flight.flightNumber} &nbsp;·&nbsp;{" "}
+              {flight.route}
             </Typography>
 
-            <Typography variant="h6" sx={{ mb: 2, textAlign: 'left' }}>
+            <Box
+              sx={{
+                display: "inline-flex",
+                flexDirection: "column",
+                alignItems: "center",
+                px: 3,
+                py: 1.5,
+                borderRadius: "10px",
+                border: "1px solid #e8eaed",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "0.65rem",
+                  fontWeight: 600,
+                  color: "#9ca3af",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  mb: 0.25,
+                }}
+              >
+                Overall Score
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: "2rem",
+                  fontWeight: 700,
+                  color: scoreColor,
+                  letterSpacing: "-0.03em",
+                  lineHeight: 1,
+                }}
+              >
+                {overallScore}%
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Section Breakdown */}
+          <Box sx={{ p: 3 }}>
+            <Typography
+              sx={{
+                fontSize: "0.72rem",
+                fontWeight: 600,
+                color: "#9ca3af",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                mb: 1.5,
+              }}
+            >
               Section Breakdown
             </Typography>
-            {purserSections.map((sec) => {
+
+            {purserSections.map((sec, idx) => {
               const secItems = sec.items.map((item) => form[item.id]);
               const rated = secItems.filter((v) => v.rating !== null);
-              const scoreMap: Record<PurserRating, number> = { N: 33, R: 66, A: 100 };
               const secScore =
                 rated.length > 0
                   ? Math.round(
-                      rated.reduce((acc, v) => acc + (v.rating ? scoreMap[v.rating] : 0), 0) /
-                        rated.length
+                      rated.reduce(
+                        (acc, v) => acc + (v.rating ? scoreMap[v.rating] : 0),
+                        0,
+                      ) / rated.length,
                     )
                   : 0;
+
+              const isLast = idx === purserSections.length - 1;
+
               return (
-                <Box
-                  key={sec.id}
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    py: 1,
-                    borderBottom: '1px solid #F0F0F5',
-                  }}
-                >
-                  <Typography variant="body2">{sec.name}</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {secScore}%
-                  </Typography>
+                <Box key={sec.id}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      py: 1.5,
+                    }}
+                  >
+                    <Typography sx={{ fontSize: "0.825rem", color: "#374151" }}>
+                      {sec.name}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: "0.825rem",
+                        fontWeight: 600,
+                        color:
+                          secScore >= 75
+                            ? "#15803d"
+                            : secScore >= 55
+                              ? "#d97706"
+                              : "#dc2626",
+                      }}
+                    >
+                      {secScore}%
+                    </Typography>
+                  </Box>
+                  {!isLast && <Divider sx={{ borderColor: "#f3f4f6" }} />}
                 </Box>
               );
             })}
+          </Box>
 
-            <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'center' }}>
-              <Button variant="outlined" onClick={() => navigate('/flight')}>
-                Back to Flight
-              </Button>
-              <Button variant="contained" onClick={() => setSubmitted(false)}>
-                Re-Evaluate
-              </Button>
-            </Box>
-          </CardContent>
+          <Divider sx={{ borderColor: "#f3f4f6" }} />
+
+          <Box
+            sx={{ p: 3, display: "flex", gap: 1.5, justifyContent: "flex-end" }}
+          >
+            <Button
+              variant="outlined"
+              onClick={() => navigate("/flight")}
+              disableElevation
+              sx={{
+                fontSize: "0.8rem",
+                fontWeight: 500,
+                textTransform: "none",
+                borderRadius: "8px",
+                borderColor: "#e8eaed",
+                color: "#374151",
+                "&:hover": { borderColor: "#d1d5db", bgcolor: "#f9fafb" },
+              }}
+            >
+              Back to Flight
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => setSubmitted(false)}
+              disableElevation
+              sx={{
+                fontSize: "0.8rem",
+                fontWeight: 500,
+                textTransform: "none",
+                borderRadius: "8px",
+                bgcolor: "#111827",
+                "&:hover": { bgcolor: "#1f2937" },
+              }}
+            >
+              Re-Evaluate
+            </Button>
+          </Box>
         </Card>
       </Box>
     );
   }
 
+  // ── Main Form ──────────────────────────────────────────────────────────────
   return (
-    <Box sx={{ maxWidth: 860, mx: 'auto' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/flight')}
-          size="small"
-          sx={{ color: 'text.secondary' }}
+    <Box sx={{ maxWidth: 820 }}>
+      {/* Back */}
+      <Button
+        startIcon={<ArrowBackIcon sx={{ fontSize: "15px !important" }} />}
+        onClick={() => navigate("/flight")}
+        disableElevation
+        sx={{
+          fontSize: "0.8rem",
+          fontWeight: 500,
+          color: "#6b7280",
+          textTransform: "none",
+          mb: 2.5,
+          px: 0,
+          "&:hover": { bgcolor: "transparent", color: "#374151" },
+        }}
+      >
+        Back to Flight
+      </Button>
+
+      {/* Header Card */}
+      <Card
+        elevation={0}
+        sx={{
+          border: "1px solid #e8eaed",
+          borderRadius: "12px",
+          bgcolor: "#ffffff",
+          mb: 2,
+        }}
+      >
+        <Box
+          sx={{
+            px: 3,
+            py: 2.5,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 2,
+          }}
         >
-          Back
-        </Button>
-      </Box>
-
-      <Card sx={{ mb: 2 }}>
-        <CardContent sx={{ py: 2 }}>
-          <Typography variant="h5" sx={{ mb: 0.5 }}>
-            Purser Assessment — {crew.name}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {flight.flightNumber} &bull; {flight.route} &bull; {flight.date} &bull; ID: {crew.id}
-          </Typography>
-        </CardContent>
-      </Card>
-
-      {/* Progress */}
-      <Card sx={{ mb: 2 }}>
-        <CardContent sx={{ py: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              Progress: {completedItems}/{totalItems} items rated
+          <Box>
+            <Typography
+              sx={{
+                fontSize: "1rem",
+                fontWeight: 600,
+                color: "#111827",
+                letterSpacing: "-0.02em",
+                mb: 0.4,
+              }}
+            >
+              Purser Assessment — {crew.name}
             </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              {Math.round(progress)}%
-            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                flexWrap: "wrap",
+              }}
+            >
+              {[flight.flightNumber, flight.route, flight.date, crew.id].map(
+                (val, i) => (
+                  <Box
+                    key={i}
+                    sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
+                  >
+                    {i > 0 && (
+                      <Box
+                        sx={{
+                          width: 3,
+                          height: 3,
+                          borderRadius: "50%",
+                          bgcolor: "#e5e7eb",
+                        }}
+                      />
+                    )}
+                    <Typography sx={{ fontSize: "0.775rem", color: "#6b7280" }}>
+                      {val}
+                    </Typography>
+                  </Box>
+                ),
+              )}
+            </Box>
           </Box>
-          <LinearProgress
-            variant="determinate"
-            value={progress}
-            sx={{
-              height: 8,
-              borderRadius: 4,
-              bgcolor: '#E8E8EE',
-              '& .MuiLinearProgress-bar': { bgcolor: 'primary.main', borderRadius: 4 },
-            }}
-          />
-          {unratedSafetyCritical.length > 0 && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}>
-              <WarningIcon sx={{ fontSize: 16, color: 'error.main' }} />
-              <Typography variant="caption" sx={{ color: 'error.main' }}>
-                {unratedSafetyCritical.length} safety-critical item(s) not yet assessed
+
+          {/* Live Score */}
+          {overallScore !== null && (
+            <Box
+              sx={{
+                px: 2,
+                py: 1,
+                borderRadius: "8px",
+                border: "1px solid #e8eaed",
+                textAlign: "center",
+                minWidth: 80,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "0.62rem",
+                  fontWeight: 600,
+                  color: "#9ca3af",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.07em",
+                  mb: 0.25,
+                }}
+              >
+                Score
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: "1.3rem",
+                  fontWeight: 700,
+                  color: scoreColor,
+                  letterSpacing: "-0.03em",
+                  lineHeight: 1,
+                }}
+              >
+                {overallScore}%
               </Typography>
             </Box>
           )}
-        </CardContent>
+        </Box>
+
+        <Divider sx={{ borderColor: "#f3f4f6" }} />
+
+        {/* Progress Bar */}
+        <Box sx={{ px: 3, py: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mb: 1,
+            }}
+          >
+            <Typography
+              sx={{ fontSize: "0.775rem", color: "#6b7280", fontWeight: 500 }}
+            >
+              {completedItems} of {totalItems} items rated
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: "0.775rem",
+                fontWeight: 600,
+                color: progress === 100 ? "#15803d" : "#374151",
+              }}
+            >
+              {Math.round(progress)}%
+            </Typography>
+          </Box>
+
+          {/* Track */}
+          <Box
+            sx={{
+              height: 5,
+              bgcolor: "#f3f4f6",
+              borderRadius: "3px",
+              overflow: "hidden",
+            }}
+          >
+            <Box
+              sx={{
+                height: "100%",
+                width: `${progress}%`,
+                bgcolor: progress === 100 ? "#22c55e" : "primary.main",
+                borderRadius: "3px",
+                transition: "width 0.3s ease",
+              }}
+            />
+          </Box>
+
+          {unratedSafetyCritical.length > 0 && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.75,
+                mt: 1.25,
+                px: 1.5,
+                py: 0.75,
+                borderRadius: "6px",
+                bgcolor: "#fef2f2",
+              }}
+            >
+              <WarningAmberIcon
+                sx={{ fontSize: 14, color: "#dc2626", flexShrink: 0 }}
+              />
+              <Typography
+                sx={{ fontSize: "0.75rem", color: "#dc2626", fontWeight: 500 }}
+              >
+                {unratedSafetyCritical.length} safety-critical item
+                {unratedSafetyCritical.length > 1 ? "s" : ""} not yet assessed
+              </Typography>
+            </Box>
+          )}
+        </Box>
       </Card>
 
       {/* Rating Legend */}
-      <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-        {RATING_LABELS.map((r) => (
-          <Chip
-            key={r.value}
-            label={`${r.value} — ${r.full}`}
-            size="small"
-            sx={{
-              bgcolor: `${purserRatingColors[r.value]}14`,
-              color: purserRatingColors[r.value],
-              fontWeight: 500,
-              fontSize: '0.7rem',
-            }}
-          />
-        ))}
-        <Chip
-          icon={<StarIcon sx={{ fontSize: 14, color: '#F57C00' }} />}
-          label="Safety-Critical"
-          size="small"
-          sx={{ bgcolor: '#FFF3E0', color: '#E65100', fontWeight: 500, fontSize: '0.7rem' }}
-        />
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1.5,
+          mb: 2,
+          flexWrap: "wrap",
+          alignItems: "center",
+          px: 0.5,
+        }}
+      >
+        {RATING_LABELS.map((r) => {
+          const s = RATING_STYLES[r.value];
+          return (
+            <Box
+              key={r.value}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.75,
+                px: 1.25,
+                py: 0.5,
+                borderRadius: "6px",
+                bgcolor: s.light,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: "4px",
+                  bgcolor: s.selected,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Typography
+                  sx={{ fontSize: "0.6rem", fontWeight: 800, color: "#fff" }}
+                >
+                  {r.value}
+                </Typography>
+              </Box>
+              <Typography
+                sx={{ fontSize: "0.72rem", color: s.text, fontWeight: 500 }}
+              >
+                {r.full}
+              </Typography>
+            </Box>
+          );
+        })}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.75,
+            px: 1.25,
+            py: 0.5,
+            borderRadius: "6px",
+            bgcolor: "#fffbeb",
+          }}
+        >
+          <BoltIcon sx={{ fontSize: 13, color: "#d97706" }} />
+          <Typography
+            sx={{ fontSize: "0.72rem", color: "#d97706", fontWeight: 500 }}
+          >
+            Safety-Critical
+          </Typography>
+        </Box>
       </Box>
 
       {/* Sections */}
       {purserSections.map((section) => {
-        const secCompleted = section.items.filter((item) => form[item.id].rating !== null).length;
+        const secCompleted = section.items.filter(
+          (item) => form[item.id].rating !== null,
+        ).length;
+        const isComplete = secCompleted === section.items.length;
+
         return (
-          <Accordion key={section.id} defaultExpanded sx={{ mb: 1, '&:before': { display: 'none' } }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-                <Typography variant="subtitle1" sx={{ flex: 1 }}>
+          <Accordion
+            key={section.id}
+            defaultExpanded
+            elevation={0}
+            sx={{
+              border: "1px solid #e8eaed",
+              borderRadius: "12px !important",
+              mb: 1.5,
+              overflow: "hidden",
+              "&:before": { display: "none" },
+            }}
+          >
+            <AccordionSummary
+              expandIcon={
+                <ExpandMoreIcon sx={{ fontSize: 18, color: "#9ca3af" }} />
+              }
+              sx={{
+                px: 3,
+                py: 0,
+                minHeight: "52px !important",
+                bgcolor: "#fafafa",
+                borderBottom: "1px solid #f3f4f6",
+                "& .MuiAccordionSummary-content": { my: "14px !important" },
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2,
+                  width: "100%",
+                  pr: 1,
+                }}
+              >
+                <Typography
+                  sx={{
+                    flex: 1,
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    color: "#111827",
+                    letterSpacing: "-0.01em",
+                  }}
+                >
                   {section.name}
                 </Typography>
-                <Chip
-                  label={`${secCompleted}/${section.items.length}`}
-                  size="small"
+
+                {/* Section progress pill */}
+                <Box
                   sx={{
-                    bgcolor: secCompleted === section.items.length ? '#E8F5E9' : '#F5F5F7',
-                    color: secCompleted === section.items.length ? '#2E7D32' : '#5A5A7A',
-                    fontWeight: 500,
-                    mr: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.6,
+                    px: 1.25,
+                    py: 0.3,
+                    borderRadius: "6px",
+                    bgcolor: isComplete ? "#f0fdf4" : "#f3f4f6",
                   }}
-                />
-              </Box>
-            </AccordionSummary>
-            <AccordionDetails>
-              {section.items.map((item) => {
-                const state = form[item.id];
-                return (
-                  <Box
-                    key={item.id}
+                >
+                  {isComplete && (
+                    <CheckCircleIcon sx={{ fontSize: 11, color: "#22c55e" }} />
+                  )}
+                  <Typography
                     sx={{
-                      mb: 2,
-                      pb: 2,
-                      borderBottom: '1px solid #F0F0F5',
-                      '&:last-child': { borderBottom: 'none', mb: 0, pb: 0 },
+                      fontSize: "0.7rem",
+                      fontWeight: 600,
+                      color: isComplete ? "#15803d" : "#6b7280",
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 500, flex: 1 }}>
-                        {item.name}
-                      </Typography>
-                      {item.isSafetyCritical && (
-                        <Tooltip title="Safety-Critical Item">
-                          <StarIcon sx={{ fontSize: 18, color: '#F57C00' }} />
-                        </Tooltip>
-                      )}
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, flexWrap: 'wrap' }}>
-                      <ToggleButtonGroup
-                        exclusive
-                        value={state.rating}
-                        onChange={(_, val) => handleRatingChange(item.id, val)}
-                        size="small"
+                    {secCompleted}/{section.items.length}
+                  </Typography>
+                </Box>
+              </Box>
+            </AccordionSummary>
+
+            <AccordionDetails sx={{ p: 0 }}>
+              {section.items.map((item, idx) => {
+                const state = form[item.id];
+                const isLast = idx === section.items.length - 1;
+
+                return (
+                  <Box key={item.id}>
+                    <Box sx={{ px: 3, py: 2.5 }}>
+                      {/* Item label */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: 1,
+                          mb: 1.5,
+                        }}
                       >
-                        {RATING_LABELS.map((r) => (
-                          <ToggleButton
-                            key={r.value}
-                            value={r.value}
-                            sx={{
-                              px: 2.5,
-                              fontWeight: 600,
-                              fontSize: '0.8rem',
-                              borderColor: '#E8E8EE',
-                              '&.Mui-selected': {
-                                bgcolor: purserRatingColors[r.value],
-                                color: '#fff',
-                                '&:hover': { bgcolor: purserRatingColors[r.value] },
-                              },
-                            }}
-                          >
-                            {r.label}
-                          </ToggleButton>
-                        ))}
-                      </ToggleButtonGroup>
+                        <Typography
+                          sx={{
+                            fontSize: "0.825rem",
+                            fontWeight: 500,
+                            color: "#111827",
+                            flex: 1,
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {item.name}
+                        </Typography>
+                        {item.isSafetyCritical && (
+                          <Tooltip title="Safety-Critical Item" placement="top">
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 0.4,
+                                px: 1,
+                                py: 0.25,
+                                borderRadius: "5px",
+                                bgcolor: "#fffbeb",
+                                flexShrink: 0,
+                              }}
+                            >
+                              <BoltIcon
+                                sx={{ fontSize: 11, color: "#d97706" }}
+                              />
+                              <Typography
+                                sx={{
+                                  fontSize: "0.65rem",
+                                  fontWeight: 600,
+                                  color: "#d97706",
+                                }}
+                              >
+                                Critical
+                              </Typography>
+                            </Box>
+                          </Tooltip>
+                        )}
+                      </Box>
+
+                      {/* Rating Buttons */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 1,
+                          mb: 1.5,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <ToggleButtonGroup
+                          exclusive
+                          value={state.rating}
+                          onChange={(_, val) =>
+                            handleRatingChange(item.id, val)
+                          }
+                          size="small"
+                          sx={{
+                            gap: 0.75,
+                            "& .MuiToggleButtonGroup-grouped": {
+                              border: "none !important",
+                              borderRadius: "8px !important",
+                            },
+                          }}
+                        >
+                          {RATING_LABELS.map((r) => {
+                            const s = RATING_STYLES[r.value];
+                            const isSelected = state.rating === r.value;
+                            return (
+                              <ToggleButton
+                                key={r.value}
+                                value={r.value}
+                                sx={{
+                                  px: 2.5,
+                                  py: 0.75,
+                                  fontSize: "0.775rem",
+                                  fontWeight: 600,
+                                  textTransform: "none",
+                                  border: `1px solid ${isSelected ? s.selected : "#e8eaed"} !important`,
+                                  borderRadius: "8px !important",
+                                  color: isSelected ? "#fff" : "#6b7280",
+                                  bgcolor: isSelected ? s.selected : "#fff",
+                                  "&:hover": {
+                                    bgcolor: isSelected ? s.selected : s.light,
+                                    color: isSelected ? "#fff" : s.text,
+                                  },
+                                  "&.Mui-selected": {
+                                    bgcolor: s.selected,
+                                    color: "#fff",
+                                    "&:hover": { bgcolor: s.selected },
+                                  },
+                                }}
+                              >
+                                {r.label} &nbsp;
+                                <span
+                                  style={{
+                                    fontSize: "0.7rem",
+                                    fontWeight: 400,
+                                    opacity: isSelected ? 0.85 : 0.6,
+                                  }}
+                                >
+                                  {r.full}
+                                </span>
+                              </ToggleButton>
+                            );
+                          })}
+                        </ToggleButtonGroup>
+                      </Box>
+
+                      {/* Remarks */}
+                      <TextField
+                        fullWidth
+                        size="small"
+                        placeholder="Add remarks (optional)…"
+                        value={state.remarks}
+                        onChange={(e) =>
+                          handleRemarksChange(item.id, e.target.value)
+                        }
+                        inputProps={{ maxLength: 500 }}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "8px",
+                            fontSize: "0.8rem",
+                            bgcolor: "#fafafa",
+                            "& fieldset": { borderColor: "#e8eaed" },
+                            "&:hover fieldset": { borderColor: "#d1d5db" },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "#4f6ef7",
+                              borderWidth: 1.5,
+                            },
+                          },
+                        }}
+                      />
                     </Box>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      placeholder="Remarks (optional)"
-                      value={state.remarks}
-                      onChange={(e) => handleRemarksChange(item.id, e.target.value)}
-                      slotProps={{ htmlInput: { maxLength: 500 } }}
-                    />
+                    {!isLast && <Divider sx={{ borderColor: "#f3f4f6" }} />}
                   </Box>
                 );
               })}
@@ -350,57 +859,172 @@ export default function PurserAssessment() {
         );
       })}
 
-      {/* Overall Remarks & Signature */}
-      <Card sx={{ mt: 2 }}>
-        <CardContent>
-          <Typography variant="h6" sx={{ mb: 2 }}>
+      {/* Final Review */}
+      <Card
+        elevation={0}
+        sx={{
+          border: "1px solid #e8eaed",
+          borderRadius: "12px",
+          bgcolor: "#ffffff",
+          mt: 2,
+        }}
+      >
+        <Box sx={{ px: 3, pt: 3, pb: 2 }}>
+          <Typography
+            sx={{
+              fontSize: "0.9rem",
+              fontWeight: 600,
+              color: "#111827",
+              letterSpacing: "-0.01em",
+              mb: 0.25,
+            }}
+          >
             Final Review
           </Typography>
+          <Typography sx={{ fontSize: "0.775rem", color: "#9ca3af", mb: 2.5 }}>
+            Add any closing observations before submission.
+          </Typography>
+
           <TextField
             fullWidth
             multiline
             minRows={3}
-            label="Overall Remarks"
-            placeholder="Enter any final observations or comments..."
+            placeholder="Enter overall remarks or observations…"
             value={overallRemarks}
             onChange={(e) => setOverallRemarks(e.target.value)}
-            sx={{ mb: 2 }}
+            sx={{
+              mb: 2,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "8px",
+                fontSize: "0.825rem",
+                "& fieldset": { borderColor: "#e8eaed" },
+                "&:hover fieldset": { borderColor: "#d1d5db" },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#4f6ef7",
+                  borderWidth: 1.5,
+                },
+              },
+            }}
           />
+
           <TextField
             fullWidth
-            label="Evaluator Signature"
-            placeholder="Enter your full name"
+            placeholder="Evaluator full name (signature)…"
             value={signature}
             onChange={(e) => setSignature(e.target.value)}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "8px",
+                fontSize: "0.825rem",
+                "& fieldset": { borderColor: "#e8eaed" },
+                "&:hover fieldset": { borderColor: "#d1d5db" },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#4f6ef7",
+                  borderWidth: 1.5,
+                },
+              },
+            }}
           />
-        </CardContent>
+        </Box>
+
+        <Divider sx={{ borderColor: "#f3f4f6" }} />
+
+        {/* Validation notice */}
+        {(completedItems < totalItems || unratedSafetyCritical.length > 0) && (
+          <Box
+            sx={{
+              mx: 3,
+              mt: 2,
+              px: 2,
+              py: 1.5,
+              borderRadius: "8px",
+              bgcolor: "#fffbeb",
+              border: "1px solid #fde68a",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 1,
+            }}
+          >
+            <WarningAmberIcon
+              sx={{ fontSize: 15, color: "#d97706", mt: 0.1, flexShrink: 0 }}
+            />
+            <Box>
+              {completedItems < totalItems && (
+                <Typography
+                  sx={{
+                    fontSize: "0.775rem",
+                    color: "#92400e",
+                    fontWeight: 500,
+                  }}
+                >
+                  {totalItems - completedItems} item
+                  {totalItems - completedItems > 1 ? "s" : ""} not yet rated
+                </Typography>
+              )}
+              {unratedSafetyCritical.length > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: "0.775rem",
+                    color: "#92400e",
+                    fontWeight: 500,
+                  }}
+                >
+                  {unratedSafetyCritical.length} safety-critical item
+                  {unratedSafetyCritical.length > 1 ? "s" : ""} must be assessed
+                  before submitting
+                </Typography>
+              )}
+            </Box>
+          </Box>
+        )}
+
+        {/* Actions */}
+        <Box
+          sx={{
+            px: 3,
+            py: 2.5,
+            display: "flex",
+            gap: 1.5,
+            justifyContent: "flex-end",
+          }}
+        >
+          <Button
+            disableElevation
+            sx={{
+              fontSize: "0.8rem",
+              fontWeight: 500,
+              textTransform: "none",
+              borderRadius: "8px",
+              border: "1px solid #e8eaed",
+              color: "#374151",
+              px: 2.5,
+              "&:hover": { bgcolor: "#f9fafb", borderColor: "#d1d5db" },
+            }}
+          >
+            Save Draft
+          </Button>
+          <Button
+            variant="contained"
+            disableElevation
+            disabled={!canSubmit}
+            onClick={handleSubmit}
+            sx={{
+              fontSize: "0.8rem",
+              fontWeight: 500,
+              textTransform: "none",
+              borderRadius: "8px",
+              px: 2.5,
+              bgcolor: "#111827",
+              "&:hover": { bgcolor: "#1f2937" },
+              "&.Mui-disabled": { bgcolor: "#f3f4f6", color: "#9ca3af" },
+            }}
+          >
+            Submit Evaluation
+          </Button>
+        </Box>
       </Card>
 
-      {/* Validation */}
-      {(completedItems < totalItems || unratedSafetyCritical.length > 0) && (
-        <Alert severity="info" sx={{ mt: 2 }}>
-          {completedItems < totalItems && (
-            <Typography variant="body2">
-              {totalItems - completedItems} item(s) not yet rated.
-            </Typography>
-          )}
-          {unratedSafetyCritical.length > 0 && (
-            <Typography variant="body2">
-              {unratedSafetyCritical.length} safety-critical item(s) must be assessed.
-            </Typography>
-          )}
-        </Alert>
-      )}
-
-      {/* Actions */}
-      <Box sx={{ display: 'flex', gap: 2, mt: 2, mb: 4, justifyContent: 'flex-end' }}>
-        <Button variant="outlined" size="large">
-          Save Draft
-        </Button>
-        <Button variant="contained" size="large" disabled={!canSubmit} onClick={handleSubmit}>
-          Submit Evaluation
-        </Button>
-      </Box>
+      <Box sx={{ mb: 4 }} />
     </Box>
   );
 }
