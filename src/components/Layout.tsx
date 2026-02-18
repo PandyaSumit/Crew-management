@@ -33,8 +33,8 @@ const APPBAR_HEIGHT = 64;
 const navItems = [
   { label: "Dashboard", path: "/", icon: <DashboardIcon fontSize="small" /> },
   {
-    label: "Current Flight",
-    path: "/flight",
+    label: "Flights",
+    path: "/flights",
     icon: <FlightIcon fontSize="small" />,
   },
   {
@@ -459,7 +459,7 @@ export default function Layout() {
             flexGrow: 1,
             px: { xs: 2, sm: 3, lg: 4 },
             py: { xs: 3, sm: 3.5 },
-            maxWidth: "1440px",
+            // maxWidth: "1440px",
             width: "100%",
           }}
         >

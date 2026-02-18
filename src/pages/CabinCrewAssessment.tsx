@@ -18,7 +18,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { cabinCrewCategories, crewMembers, flights } from "../data/mockData";
-import { ratingColors } from "../theme";
+
 import type { RatingValue } from "../types";
 
 const RATING_LABELS: {

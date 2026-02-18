@@ -11,7 +11,7 @@ import {
   IconButton,
   Divider,
 } from "@mui/material";
-import FlightIcon from "@mui/icons-material/Flight";
+
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 const inputSx = {
@@ -21,7 +21,7 @@ const inputSx = {
     bgcolor: "#ffffff",
     "& fieldset": { borderColor: "#e8eaed" },
     "&:hover fieldset": { borderColor: "#d1d5db" },
-    "&.Mui-focused fieldset": { borderColor: "primary.main", borderWidth: 1.5 },
+    "&.Mui-focused fieldset": { borderColor: "#4f6ef7", borderWidth: 1.5 },
   },
   "& .MuiFormHelperText-root": {
     fontSize: "0.72rem",
@@ -93,56 +93,46 @@ export default function Login() {
           display: { xs: "none", lg: "flex" },
           width: "44%",
           flexShrink: 0,
-          bgcolor: "#0f1117",
+          bgcolor: "#eef2ff",
           flexDirection: "column",
           justifyContent: "space-between",
-          p: 5,
+          p: 6,
         }}
       >
-        {/* Brand */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        {/* 🔥 Brand */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
           <Box
+            component="img"
+            src="/airCairo-logo.png"
+            alt="AirCairo Logo"
             sx={{
-              width: 32,
-              height: 32,
-              borderRadius: "8px",
-              bgcolor: "primary.main",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              height: 28, // ✅ clean logo size
+              width: "auto",
             }}
-          >
-            <FlightIcon
-              sx={{ fontSize: 17, color: "#fff", transform: "rotate(45deg)" }}
-            />
-          </Box>
-          <Typography
-            sx={{ fontSize: "0.9rem", fontWeight: 600, color: "#f1f1f1" }}
-          >
-            AirCairo
-          </Typography>
+          />
         </Box>
 
-        {/* Center content */}
+        {/* 🔥 Center content */}
         <Box>
           <Typography
             sx={{
-              fontSize: "2rem",
+              fontSize: "2.2rem",
               fontWeight: 700,
-              color: "#ffffff",
+              color: "#000000",
               letterSpacing: "-0.03em",
               lineHeight: 1.2,
-              mb: 1.5,
+              mb: 2,
             }}
           >
             Crew Evaluation
             <br />
             Made Simple.
           </Typography>
+
           <Typography
             sx={{
-              fontSize: "0.875rem",
-              color: "rgba(255,255,255,0.4)",
+              fontSize: "0.95rem",
+              color: "#332e2eff",
               lineHeight: 1.7,
             }}
           >
@@ -151,38 +141,44 @@ export default function Login() {
           </Typography>
         </Box>
 
-        {/* Demo credentials */}
+        {/* 🔥 Bottom card */}
         <Box
           sx={{
-            p: 2,
-            borderRadius: "10px",
-            border: "1px solid rgba(255,255,255,0.08)",
-            bgcolor: "rgba(255,255,255,0.04)",
+            p: 2.5,
+            borderRadius: "12px",
+            border: "1px solid rgba(32, 30, 30, 0.08)",
+            bgcolor: "rgba(255,255,255,0.03)",
+            backdropFilter: "blur(10px)",
           }}
         >
           <Typography
             sx={{
-              fontSize: "0.65rem",
+              fontSize: "0.7rem",
               fontWeight: 600,
-              color: "rgba(255,255,255,0.3)",
+              color: "rgba(0, 0, 0, 0.35)",
               textTransform: "uppercase",
               letterSpacing: "0.08em",
-              mb: 1,
+              mb: 1.2,
             }}
           >
             Demo Credentials
           </Typography>
+
           <Typography
             sx={{
-              fontSize: "0.775rem",
-              color: "rgba(255,255,255,0.5)",
-              mb: 0.4,
+              fontSize: "0.85rem",
+              color: "rgba(56, 56, 56, 0.7)",
+              mb: 0.5,
             }}
           >
             demo@example.com
           </Typography>
+
           <Typography
-            sx={{ fontSize: "0.775rem", color: "rgba(255,255,255,0.5)" }}
+            sx={{
+              fontSize: "0.85rem",
+              color: "rgba(56, 56, 56, 0.7)",
+            }}
           >
             password123
           </Typography>
@@ -209,26 +205,17 @@ export default function Login() {
               mb: 4,
             }}
           >
-            <Box
-              sx={{
-                width: 32,
-                height: 32,
-                borderRadius: "8px",
-                bgcolor: "primary.main",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <FlightIcon
-                sx={{ fontSize: 17, color: "#fff", transform: "rotate(45deg)" }}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
+              <Box
+                component="img"
+                src="/airCairo-logo.png"
+                alt="AirCairo Logo"
+                sx={{
+                  height: 28, // ✅ clean logo size
+                  width: "auto",
+                }}
               />
             </Box>
-            <Typography
-              sx={{ fontSize: "0.9rem", fontWeight: 600, color: "#111827" }}
-            >
-              AirCairo
-            </Typography>
           </Box>
 
           {/* Heading */}
@@ -331,9 +318,9 @@ export default function Login() {
                   underline="none"
                   sx={{
                     fontSize: "0.775rem",
-                    color: "primary.main",
+                    color: "#4f6ef7",
                     fontWeight: 500,
-                    "&:hover": { color: "primary.dark" },
+                    "&:hover": { color: "#3b4fd8" },
                   }}
                 >
                   Forgot password?
@@ -381,10 +368,10 @@ export default function Login() {
               underline="none"
               sx={{
                 fontSize: "0.8rem",
-                color: "primary.main",
+                color: "#4f6ef7",
                 fontWeight: 500,
                 cursor: "pointer",
-                "&:hover": { color: "primary.dark" },
+                "&:hover": { color: "#3b4fd8" },
               }}
             >
               Create account

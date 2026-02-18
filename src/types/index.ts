@@ -12,6 +12,9 @@ export interface CrewMember {
   contact: string;
   previousPerformance: 'excellent' | 'good' | 'average' | 'needs-improvement';
   evaluationStatus: EvaluationStatus;
+  hasSafetyViolation: boolean; // New: Safety badge
+  performanceData: PerformanceData[]; // New: Individual Radar Chart
+  history: PastFlight[]; // New: Trend Line
 }
 
 export interface Flight {
@@ -61,8 +64,17 @@ export interface PurserEvaluation {
   crewMemberId: string;
   flightId: string;
   sections: PurserSectionRatings[];
-  overallRemarks: string;
-  evaluatorSignature: string;
+  remarks: {
+    summary: string;
+    strengths: string;
+    development: string;
+    actionPlan: string;
+  };
+  signatures: {
+    purser: { name: string; date: string; signed: boolean };
+    evaluator: { name: string; date: string; signed: boolean };
+    manager: { name: string; date: string; signed: boolean };
+  };
   status: EvaluationStatus;
   overallScore: number | null;
   date: string;

@@ -25,6 +25,19 @@ export const crewMembers: CrewMember[] = [
     contact: 'ahmed.hassan@aircairo.com',
     previousPerformance: 'excellent',
     evaluationStatus: 'Not Started',
+    hasSafetyViolation: false,
+    performanceData: [
+      { category: 'Professional Image', year2025: 85, year2026: 90, fullMark: 100 },
+      { category: 'SOP Adherence', year2025: 88, year2026: 92, fullMark: 100 },
+      { category: 'Passenger Service', year2025: 82, year2026: 85, fullMark: 100 },
+      { category: 'Teamwork & CRM', year2025: 90, year2026: 94, fullMark: 100 },
+      { category: 'Situational Competence', year2025: 78, year2026: 85, fullMark: 100 },
+    ],
+    history: [
+      { id: 'PF001', date: '2026-02-10', flightNumber: 'SM 201', route: 'CAI → LHR', crewMemberName: 'Ahmed Hassan', crewMemberId: 'CC001', role: 'Cabin Crew', overallScore: 87, status: 'Completed' },
+      { id: 'PF007', date: '2026-01-15', flightNumber: 'SM 305', route: 'CAI → CDG', crewMemberName: 'Ahmed Hassan', crewMemberId: 'CC001', role: 'Cabin Crew', overallScore: 83, status: 'Completed' },
+      { id: 'PF011', date: '2026-01-05', flightNumber: 'SM 108', route: 'CAI → RUH', crewMemberName: 'Ahmed Hassan', crewMemberId: 'CC001', role: 'Cabin Crew', overallScore: 88, status: 'Completed' },
+    ],
   },
   {
     id: 'CC002',
@@ -35,6 +48,19 @@ export const crewMembers: CrewMember[] = [
     contact: 'sara.mohamed@aircairo.com',
     previousPerformance: 'good',
     evaluationStatus: 'In Progress',
+    hasSafetyViolation: true,
+    performanceData: [
+      { category: 'Professional Image', year2025: 75, year2026: 78, fullMark: 100 },
+      { category: 'SOP Adherence', year2025: 80, year2026: 72, fullMark: 100 },
+      { category: 'Passenger Service', year2025: 85, year2026: 88, fullMark: 100 },
+      { category: 'Teamwork & CRM', year2025: 78, year2026: 80, fullMark: 100 },
+      { category: 'Situational Competence', year2025: 70, year2026: 65, fullMark: 100 },
+    ],
+    history: [
+      { id: 'PF002', date: '2026-02-08', flightNumber: 'SM 305', route: 'CAI → CDG', crewMemberName: 'Sara Mohamed', crewMemberId: 'CC002', role: 'Cabin Crew', overallScore: 92, status: 'Completed' },
+      { id: 'PF008', date: '2026-01-10', flightNumber: 'SM 201', route: 'CAI → LHR', crewMemberName: 'Sara Mohamed', crewMemberId: 'CC002', role: 'Cabin Crew', overallScore: 90, status: 'Completed' },
+      { id: 'PF012', date: '2025-12-28', flightNumber: 'SM 415', route: 'CAI → JED', crewMemberName: 'Sara Mohamed', crewMemberId: 'CC002', role: 'Cabin Crew', overallScore: 78, status: 'Completed' },
+    ],
   },
   {
     id: 'CC003',
@@ -45,6 +71,18 @@ export const crewMembers: CrewMember[] = [
     contact: 'omar.khaled@aircairo.com',
     previousPerformance: 'average',
     evaluationStatus: 'Not Started',
+    hasSafetyViolation: false,
+    performanceData: [
+      { category: 'Professional Image', year2025: 70, year2026: 72, fullMark: 100 },
+      { category: 'SOP Adherence', year2025: 68, year2026: 75, fullMark: 100 },
+      { category: 'Passenger Service', year2025: 72, year2026: 74, fullMark: 100 },
+      { category: 'Teamwork & CRM', year2025: 75, year2026: 78, fullMark: 100 },
+      { category: 'Situational Competence', year2025: 65, year2026: 70, fullMark: 100 },
+    ],
+    history: [
+      { id: 'PF004', date: '2026-01-28', flightNumber: 'SM 102', route: 'CAI → IST', crewMemberName: 'Omar Khaled', crewMemberId: 'CC003', role: 'Cabin Crew', overallScore: 74, status: 'Completed' },
+      { id: 'PF010', date: '2025-12-15', flightNumber: 'SM 412', route: 'CAI → FRA', crewMemberName: 'Omar Khaled', crewMemberId: 'CC003', role: 'Cabin Crew', overallScore: 71, status: 'Completed' },
+    ],
   },
   {
     id: 'PS001',
@@ -55,26 +93,18 @@ export const crewMembers: CrewMember[] = [
     contact: 'fatma.ali@aircairo.com',
     previousPerformance: 'excellent',
     evaluationStatus: 'Completed',
-  },
-  {
-    id: 'CC004',
-    name: 'Youssef Ibrahim',
-    photo: '',
-    role: 'Cabin Crew',
-    joinDate: '2022-09-01',
-    contact: 'youssef.ibrahim@aircairo.com',
-    previousPerformance: 'needs-improvement',
-    evaluationStatus: 'Not Started',
-  },
-  {
-    id: 'PS002',
-    name: 'Nour El-Din',
-    photo: '',
-    role: 'Purser',
-    joinDate: '2018-11-20',
-    contact: 'nour.eldin@aircairo.com',
-    previousPerformance: 'good',
-    evaluationStatus: 'Not Started',
+    hasSafetyViolation: false,
+    performanceData: [
+      { category: 'Professional Image', year2025: 92, year2026: 95, fullMark: 100 },
+      { category: 'SOP Adherence', year2025: 95, year2026: 98, fullMark: 100 },
+      { category: 'Passenger Service', year2025: 90, year2026: 92, fullMark: 100 },
+      { category: 'Teamwork & CRM', year2025: 88, year2026: 90, fullMark: 100 },
+      { category: 'Situational Competence', year2025: 85, year2026: 90, fullMark: 100 },
+    ],
+    history: [
+      { id: 'PF003', date: '2026-02-05', flightNumber: 'SM 412', route: 'CAI → FRA', crewMemberName: 'Fatma Ali', crewMemberId: 'PS001', role: 'Purser', overallScore: 95, status: 'Completed' },
+      { id: 'PF009', date: '2025-12-20', flightNumber: 'SM 108', route: 'CAI → RUH', crewMemberName: 'Fatma Ali', crewMemberId: 'PS001', role: 'Purser', overallScore: 93, status: 'Completed' },
+    ],
   },
 ];
 

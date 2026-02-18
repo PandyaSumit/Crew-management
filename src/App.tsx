@@ -4,6 +4,7 @@ import theme from "./theme";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import FlightView from "./pages/FlightView";
+import FlightList from "./pages/FlightList";
 import CabinCrewAssessment from "./pages/CabinCrewAssessment";
 import PurserAssessment from "./pages/PurserAssessment";
 import PastFlights from "./pages/PastFlights";
@@ -32,7 +33,8 @@ export default function App() {
             }
           >
             <Route path="/" element={<Dashboard />} />
-            <Route path="/flight" element={<FlightView />} />
+            <Route path="/flights" element={<FlightList />} />
+            <Route path="/flights/:flightId" element={<FlightView />} />
             <Route
               path="/evaluate/cabin-crew/:flightId/:crewId"
               element={<CabinCrewAssessment />}

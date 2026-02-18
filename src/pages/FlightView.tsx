@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+
 import {
   Avatar,
   Box,
@@ -6,420 +7,390 @@ import {
   Card,
   CardContent,
   Typography,
-  Divider,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  MenuItem,
+  FormControl,
+  Select,
+  useTheme,
+  alpha,
 } from "@mui/material";
-import FlightTakeoffIcon from "@mui/icons-material/FlightTakeoff";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import { currentFlight } from "../data/mockData";
+
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import { flights } from "../data/mockData";
 
 const statusConfig: Record<
   string,
-  { bg: string; color: string; dot: string; label: string }
+  { bg: string; color: string; label: string }
 > = {
-  "Not Started": {
-    bg: "#f3f4f6",
-    color: "#6b7280",
-    dot: "#d1d5db",
-    label: "Not Started",
-  },
-  "In Progress": {
-    bg: "#fffbeb",
-    color: "#d97706",
-    dot: "#f59e0b",
-    label: "In Progress",
-  },
-  Completed: {
-    bg: "#f0fdf4",
-    color: "#15803d",
-    dot: "#22c55e",
-    label: "Completed",
-  },
-};
-
-const performanceConfig: Record<string, { bg: string; color: string }> = {
-  excellent: { bg: "#f0fdf4", color: "#15803d" },
-  good: { bg: "#eff6ff", color: "#1d4ed8" },
-  average: { bg: "#fff7ed", color: "#c2410c" },
-  poor: { bg: "#fef2f2", color: "#b91c1c" },
-};
-
-const getPerformanceStyle = (perf: string) => {
-  const key = perf.toLowerCase().replace("-", " ");
-  return performanceConfig[key] ?? { bg: "#f3f4f6", color: "#6b7280" };
+  "Not Started": { bg: "#f3f4f6", color: "#6b7280", label: "Not Started" },
+  "In Progress": { bg: "#fffbeb", color: "#d97706", label: "In Progress" },
+  Completed: { bg: "#f0fdf4", color: "#166534", label: "Completed" },
 };
 
 export default function FlightView() {
   const navigate = useNavigate();
-  const flight = currentFlight;
+  const { flightId } = useParams();
+  const theme = useTheme();
 
-  const completed = flight.crew.filter(
-    (m) => m.evaluationStatus === "Completed",
+  const flight = flights.find((f) => f.id === flightId) || flights[0];
+
+  const completedCount = flight.crew.filter(
+    (c) => c.evaluationStatus === "Completed",
   ).length;
-  const total = flight.crew.length;
-  const progressPct = Math.round((completed / total) * 100);
+  const progress = Math.round((completedCount / flight.crew.length) * 100);
 
   return (
     <Box>
-      {/* Flight Header Card */}
-      <Card
-        elevation={0}
-        sx={{
-          border: "1px solid #e8eaed",
-          borderRadius: "12px",
-          bgcolor: "#ffffff",
-          mb: 3,
-        }}
-      >
-        <CardContent sx={{ p: "24px !important" }}>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 2,
-              flexWrap: "wrap",
-            }}
-          >
-            {/* Icon */}
-            <Box
+      {/* 1. Header with Back Button */}
+      <Box sx={{ mb: 3 }}>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate("/flights")}
+          sx={{
+            color: "#6b7280",
+            textTransform: "none",
+            mb: 2,
+            "&:hover": { bgcolor: "transparent", color: "#111827" },
+          }}
+        >
+          Back to Flights
+        </Button>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+          }}
+        >
+          <Box>
+            <Typography
               sx={{
-                width: 44,
-                height: 44,
-                borderRadius: "10px",
+                fontSize: "1.75rem",
+                fontWeight: 700,
+                color: "#111827",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                bgcolor: "#eef1fe",
-                color: "primary.main",
-                flexShrink: 0,
+                gap: 2,
               }}
             >
-              <FlightTakeoffIcon sx={{ fontSize: 20 }} />
-            </Box>
-
-            {/* Flight Info */}
-            <Box sx={{ flex: 1, minWidth: 200 }}>
-              <Box
+              {flight.flightNumber}
+              <Chip
+                label={flight.route}
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1.5,
-                  flexWrap: "wrap",
+                  fontSize: "1rem",
+                  fontWeight: 600,
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  color: "primary.main",
                 }}
-              >
-                <Typography
-                  sx={{
-                    fontSize: "1rem",
-                    fontWeight: 600,
-                    color: "#111827",
-                    letterSpacing: "-0.01em",
-                  }}
-                >
-                  {flight.flightNumber}
-                </Typography>
-                <Box
-                  sx={{
-                    width: 4,
-                    height: 4,
-                    borderRadius: "50%",
-                    bgcolor: "#d1d5db",
-                  }}
-                />
-                <Typography
-                  sx={{ fontSize: "1rem", fontWeight: 600, color: "#111827" }}
-                >
-                  {flight.route}
-                </Typography>
-              </Box>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 2,
-                  mt: 0.5,
-                  flexWrap: "wrap",
-                }}
-              >
-                {[
-                  { label: "Aircraft", value: flight.aircraft },
-                  { label: "Date", value: flight.date },
-                ].map((item) => (
-                  <Typography
-                    key={item.label}
-                    sx={{ fontSize: "0.8rem", color: "#9ca3af" }}
-                  >
-                    <span style={{ color: "#6b7280", fontWeight: 500 }}>
-                      {item.label}:
-                    </span>{" "}
-                    {item.value}
-                  </Typography>
-                ))}
-              </Box>
-            </Box>
-
-            {/* Progress */}
-            <Box
-              sx={{
-                textAlign: "right",
-                flexShrink: 0,
-              }}
+              />
+            </Typography>
+            <Typography sx={{ color: "#6b7280", mt: 0.5 }}>
+              {flight.aircraft} • {flight.date}
+            </Typography>
+          </Box>
+          <Box
+            sx={{ textAlign: "right", display: { xs: "none", md: "block" } }}
+          >
+            <Typography
+              sx={{ fontSize: "0.875rem", color: "#6b7280", mb: 0.5 }}
             >
-              <Typography
-                sx={{
-                  fontSize: "0.72rem",
-                  color: "#9ca3af",
-                  fontWeight: 500,
-                  mb: 0.5,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.06em",
-                }}
-              >
-                Evaluations
-              </Typography>
-              <Typography
-                sx={{
-                  fontSize: "1.25rem",
-                  fontWeight: 700,
-                  color: "#111827",
-                  letterSpacing: "-0.02em",
-                  lineHeight: 1,
-                }}
-              >
-                {completed}
-                <span style={{ color: "#d1d5db", fontWeight: 400 }}>
-                  /{total}
-                </span>
-              </Typography>
-              {/* Progress bar */}
+              Evaluation Progress
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <Box
                 sx={{
-                  mt: 1,
-                  width: 80,
-                  height: 4,
+                  width: 120,
+                  height: 8,
                   bgcolor: "#f3f4f6",
-                  borderRadius: "2px",
+                  borderRadius: 4,
                   overflow: "hidden",
-                  ml: "auto",
                 }}
               >
                 <Box
                   sx={{
+                    width: `${progress}%`,
                     height: "100%",
-                    width: `${progressPct}%`,
-                    bgcolor: progressPct === 100 ? "#22c55e" : "primary.main",
-                    borderRadius: "2px",
+                    bgcolor: theme.palette.primary.main,
                   }}
                 />
               </Box>
+              <Typography sx={{ fontWeight: 600 }}>{progress}%</Typography>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+
+      {/* 2. Metadata Card */}
+      <Card
+        elevation={0}
+        sx={{ border: "1px solid #e8eaed", borderRadius: "12px", mb: 4 }}
+      >
+        <CardContent sx={{ p: 3 }}>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+            <Box>
+              <Typography
+                sx={{
+                  fontSize: "0.75rem",
+                  color: "#9ca3af",
+                  textTransform: "uppercase",
+                  fontWeight: 600,
+                  letterSpacing: "0.05em",
+                }}
+              >
+                Purser
+              </Typography>
+              <Typography sx={{ fontWeight: 600, color: "#111827", mt: 0.5 }}>
+                {flight.crew.find((c) => c.role === "Purser")?.name ||
+                  "Unassigned"}
+              </Typography>
+            </Box>
+            <Box>
+              <Typography
+                sx={{
+                  fontSize: "0.75rem",
+                  color: "#9ca3af",
+                  textTransform: "uppercase",
+                  fontWeight: 600,
+                  letterSpacing: "0.05em",
+                }}
+              >
+                Crew Count
+              </Typography>
+              <Typography sx={{ fontWeight: 600, color: "#111827", mt: 0.5 }}>
+                {flight.crew.length} Members
+              </Typography>
+            </Box>
+            <Box sx={{ ml: "auto", display: "flex", gap: 2 }}>
+              <Button variant="outlined" sx={{ textTransform: "none" }}>
+                Export Report
+              </Button>
+              <Button
+                variant="contained"
+                disableElevation
+                sx={{ textTransform: "none", bgcolor: "#111827" }}
+              >
+                Mark Flight Complete
+              </Button>
             </Box>
           </Box>
         </CardContent>
       </Card>
 
-      {/* Section Label */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          mb: 2,
-        }}
-      >
-        <Typography
-          sx={{
-            fontSize: "0.72rem",
-            fontWeight: 600,
-            color: "#9ca3af",
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-          }}
-        >
-          Assigned Crew · {total} members
-        </Typography>
-      </Box>
-
-      {/* Crew List */}
+      {/* 3. Crew Roster Table */}
       <Card
         elevation={0}
         sx={{
           border: "1px solid #e8eaed",
           borderRadius: "12px",
-          bgcolor: "#ffffff",
           overflow: "hidden",
         }}
       >
-        {flight.crew.map((member, idx) => {
-          const status =
-            statusConfig[member.evaluationStatus] ??
-            statusConfig["Not Started"];
-          const perfStyle = getPerformanceStyle(member.previousPerformance);
-          const isCompleted = member.evaluationStatus === "Completed";
-          const isLast = idx === flight.crew.length - 1;
-
-          return (
-            <Box key={member.id}>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 2,
-                  px: 3,
-                  py: 2.5,
-                  flexWrap: "wrap",
-                  "&:hover": { bgcolor: "#fafafa" },
-                  transition: "background-color 0.12s",
-                }}
-              >
-                {/* Avatar */}
-                <Avatar
+        <Box
+          sx={{
+            p: 2,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderBottom: "1px solid #e8eaed",
+          }}
+        >
+          <Typography sx={{ fontWeight: 600, color: "#111827" }}>
+            Crew Roster & Evaluations
+          </Typography>
+          <Button
+            startIcon={<AssessmentIcon />}
+            size="small"
+            sx={{ textTransform: "none" }}
+          >
+            Start All Assessments
+          </Button>
+        </Box>
+        <TableContainer>
+          <Table>
+            <TableHead sx={{ bgcolor: "#f9fafb" }}>
+              <TableRow>
+                <TableCell
                   sx={{
-                    width: 36,
-                    height: 36,
-                    bgcolor: "#eef1fe",
-                    color: "primary.main",
-                    fontSize: "0.85rem",
+                    fontSize: "0.75rem",
                     fontWeight: 600,
-                    flexShrink: 0,
+                    color: "#6b7280",
+                    textTransform: "uppercase",
                   }}
                 >
-                  {member.name.charAt(0)}
-                </Avatar>
-
-                {/* Name + Meta */}
-                <Box sx={{ flex: 1, minWidth: 160 }}>
-                  <Typography
-                    sx={{
-                      fontSize: "0.875rem",
-                      fontWeight: 500,
-                      color: "#111827",
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    {member.name}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "0.75rem",
-                      color: "#9ca3af",
-                      mt: 0.2,
-                    }}
-                  >
-                    <span style={{ color: "#6b7280" }}>{member.id}</span>
-                    <span style={{ margin: "0 6px", color: "#e5e7eb" }}>·</span>
-                    {member.role}
-                  </Typography>
-                </Box>
-
-                {/* Badges */}
-                <Box
+                  Crew Member
+                </TableCell>
+                <TableCell
                   sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1.5,
-                    flexWrap: "wrap",
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                    color: "#6b7280",
+                    textTransform: "uppercase",
                   }}
                 >
-                  {/* Performance badge */}
-                  <Box
-                    sx={{
-                      px: 1.5,
-                      py: 0.4,
-                      borderRadius: "6px",
-                      bgcolor: perfStyle.bg,
-                      color: perfStyle.color,
-                      fontSize: "0.72rem",
-                      fontWeight: 600,
-                      textTransform: "capitalize",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {member.previousPerformance.replace("-", " ")}
-                  </Box>
-
-                  {/* Status badge */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 0.6,
-                      px: 1.5,
-                      py: 0.4,
-                      borderRadius: "6px",
-                      bgcolor: status.bg,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: 5,
-                        height: 5,
-                        borderRadius: "50%",
-                        bgcolor: status.dot,
-                        flexShrink: 0,
-                      }}
-                    />
-                    <Typography
-                      sx={{
-                        fontSize: "0.72rem",
-                        fontWeight: 600,
-                        color: status.color,
-                      }}
-                    >
-                      {status.label}
-                    </Typography>
-                  </Box>
-                </Box>
-
-                {/* Action Button */}
-                <Button
-                  variant={isCompleted ? "outlined" : "contained"}
-                  size="small"
-                  endIcon={
-                    <ArrowForwardIcon sx={{ fontSize: "13px !important" }} />
-                  }
-                  onClick={() => {
-                    const evaluationType =
-                      member.role === "Purser" ? "purser" : "cabin-crew";
-                    navigate(
-                      `/evaluate/${evaluationType}/${flight.id}/${member.id}`,
-                    );
-                  }}
-                  disableElevation
+                  Role / Position
+                </TableCell>
+                <TableCell
                   sx={{
-                    minWidth: 140,
-                    fontSize: "0.775rem",
-                    fontWeight: 500,
-                    borderRadius: "8px",
-                    textTransform: "none",
-                    flexShrink: 0,
-                    ...(isCompleted
-                      ? {
-                          borderColor: "#e8eaed",
-                          color: "#374151",
-                          "&:hover": {
-                            borderColor: "#d1d5db",
-                            bgcolor: "#f9fafb",
-                          },
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                    color: "#6b7280",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Assessment Type
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                    color: "#6b7280",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Status
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                    color: "#6b7280",
+                    textTransform: "uppercase",
+                  }}
+                  align="right"
+                >
+                  Action
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {flight.crew.map((member) => {
+                const status =
+                  statusConfig[member.evaluationStatus] ||
+                  statusConfig["Not Started"];
+                return (
+                  <TableRow key={member.id} hover>
+                    <TableCell>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
+                      >
+                        <Avatar
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            bgcolor: alpha(theme.palette.primary.main, 0.1),
+                            color: "primary.main",
+                            fontSize: "0.875rem",
+                          }}
+                        >
+                          {member.name.charAt(0)}
+                        </Avatar>
+                        <Box>
+                          <Typography
+                            sx={{
+                              fontSize: "0.875rem",
+                              fontWeight: 500,
+                              color: "#111827",
+                            }}
+                          >
+                            {member.name}
+                          </Typography>
+                          <Typography
+                            sx={{ fontSize: "0.75rem", color: "#9ca3af" }}
+                          >
+                            {member.id}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Typography
+                        sx={{ fontSize: "0.875rem", color: "#374151" }}
+                      >
+                        {member.role}
+                      </Typography>
+                      <Typography
+                        sx={{ fontSize: "0.75rem", color: "#9ca3af" }}
+                      >
+                        POS: {member.role === "Purser" ? "L1" : "R1"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <FormControl
+                        variant="standard"
+                        size="small"
+                        sx={{ minWidth: 120 }}
+                      >
+                        <Select
+                          value="standard"
+                          disableUnderline
+                          sx={{ fontSize: "0.875rem" }}
+                        >
+                          <MenuItem value="standard">Standard Flight</MenuItem>
+                          <MenuItem value="line-check">Line Check</MenuItem>
+                          <MenuItem value="development">Development</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={status.label}
+                        size="small"
+                        sx={{
+                          height: 24,
+                          bgcolor: status.bg,
+                          color: status.color,
+                          fontWeight: 500,
+                          fontSize: "0.75rem",
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <Button
+                        variant={
+                          member.evaluationStatus === "Completed"
+                            ? "outlined"
+                            : "contained"
                         }
-                      : {
-                          bgcolor: "#111827",
-                          color: "#ffffff",
-                          "&:hover": { bgcolor: "#1f2937" },
-                        }),
-                  }}
-                >
-                  {member.evaluationStatus === "Not Started"
-                    ? "Start Evaluation"
-                    : member.evaluationStatus === "In Progress"
-                      ? "Continue"
-                      : "View Report"}
-                </Button>
-              </Box>
-
-              {!isLast && <Divider sx={{ borderColor: "#f3f4f6" }} />}
-            </Box>
-          );
-        })}
+                        size="small"
+                        disableElevation
+                        onClick={() => {
+                          const type =
+                            member.role === "Purser" ? "purser" : "cabin-crew";
+                          navigate(
+                            `/evaluate/${type}/${flight.id}/${member.id}`,
+                          );
+                        }}
+                        sx={{
+                          textTransform: "none",
+                          fontSize: "0.8125rem",
+                          ...(member.evaluationStatus !== "Completed" && {
+                            bgcolor: "#111827",
+                            color: "white",
+                            "&:hover": { bgcolor: "#374151" },
+                          }),
+                        }}
+                      >
+                        {member.evaluationStatus === "Not Started"
+                          ? "Evaluate"
+                          : member.evaluationStatus === "Completed"
+                            ? "Review"
+                            : "Continue"}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Card>
     </Box>
   );

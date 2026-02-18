@@ -40,7 +40,7 @@ export default function CrewProfiles() {
   const theme = useTheme();
 
   return (
-    <Box sx={{ maxWidth: 1200 }}>
+    <Box>
       {/* Header */}
       <Box sx={{ mb: 3 }}>
         <Typography

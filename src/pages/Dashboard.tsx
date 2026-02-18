@@ -73,7 +73,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <Box sx={{ maxWidth: 1280 }}>
+    <Box>
       {/* Page Header */}
       <Box sx={{ mb: 4 }}>
         <Typography

@@ -17,7 +17,7 @@ import {
   Checkbox,
   Divider,
 } from "@mui/material";
-import FlightIcon from "@mui/icons-material/Flight";
+
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
@@ -156,33 +156,24 @@ export default function Signup() {
           display: { xs: "none", lg: "flex" },
           width: "42%",
           flexShrink: 0,
-          bgcolor: "#0f1117",
+          bgcolor: "#eef2ff",
           flexDirection: "column",
           justifyContent: "space-between",
           p: 5,
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <Box
-            sx={{
-              width: 32,
-              height: 32,
-              borderRadius: "8px",
-              bgcolor: "primary.main",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <FlightIcon
-              sx={{ fontSize: 17, color: "#fff", transform: "rotate(45deg)" }}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
+            <Box
+              component="img"
+              src="/airCairo-logo.png"
+              alt="AirCairo Logo"
+              sx={{
+                height: 28, // ✅ clean logo size
+                width: "auto",
+              }}
             />
           </Box>
-          <Typography
-            sx={{ fontSize: "0.9rem", fontWeight: 600, color: "#f1f1f1" }}
-          >
-            AirCairo
-          </Typography>
         </Box>
 
         <Box>
@@ -190,7 +181,7 @@ export default function Signup() {
             sx={{
               fontSize: "1.8rem",
               fontWeight: 700,
-              color: "#ffffff",
+              color: "#000000",
               letterSpacing: "-0.03em",
               lineHeight: 1.2,
               mb: 1.5,
@@ -203,7 +194,7 @@ export default function Signup() {
           <Typography
             sx={{
               fontSize: "0.875rem",
-              color: "rgba(255,255,255,0.4)",
+              color: "#332e2eff",
               lineHeight: 1.7,
             }}
           >
@@ -217,15 +208,15 @@ export default function Signup() {
           sx={{
             p: 2.5,
             borderRadius: "10px",
-            border: "1px solid rgba(255,255,255,0.08)",
-            bgcolor: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(32, 30, 30, 0.08)",
+            bgcolor: "rgba(255,255,255,0.03)",
           }}
         >
           <Typography
             sx={{
               fontSize: "0.65rem",
               fontWeight: 600,
-              color: "rgba(255,255,255,0.3)",
+              color: "rgba(0, 0, 0, 0.3)",
               textTransform: "uppercase",
               letterSpacing: "0.08em",
               mb: 1.25,
@@ -248,7 +239,7 @@ export default function Signup() {
                     bgcolor:
                       met && formData.password
                         ? "#22c55e"
-                        : "rgba(255,255,255,0.2)",
+                        : "rgba(0, 0, 0, 0.2)",
                     flexShrink: 0,
                     transition: "background-color 0.15s",
                   }}
@@ -258,8 +249,8 @@ export default function Signup() {
                     fontSize: "0.75rem",
                     color:
                       met && formData.password
-                        ? "rgba(255,255,255,0.6)"
-                        : "rgba(255,255,255,0.3)",
+                        ? "rgba(56, 56, 56, 0.7)"
+                        : "rgba(56, 56, 56, 0.7)",
                     transition: "color 0.15s",
                   }}
                 >
@@ -276,7 +267,7 @@ export default function Signup() {
         sx={{
           flex: 1,
           display: "flex",
-          alignItems: "flex-start",
+          alignItems: "center",
           justifyContent: "center",
           p: { xs: 2, sm: 4 },
           overflowY: "auto",
@@ -292,26 +283,17 @@ export default function Signup() {
               mb: 4,
             }}
           >
-            <Box
-              sx={{
-                width: 32,
-                height: 32,
-                borderRadius: "8px",
-                bgcolor: "primary.main",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <FlightIcon
-                sx={{ fontSize: 17, color: "#fff", transform: "rotate(45deg)" }}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
+              <Box
+                component="img"
+                src="/airCairo-logo.png"
+                alt="AirCairo Logo"
+                sx={{
+                  height: 28, // ✅ clean logo size
+                  width: "auto",
+                }}
               />
             </Box>
-            <Typography
-              sx={{ fontSize: "0.9rem", fontWeight: 600, color: "#111827" }}
-            >
-              AirCairo
-            </Typography>
           </Box>
 
           <Typography
