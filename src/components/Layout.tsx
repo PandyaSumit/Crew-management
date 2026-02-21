@@ -21,9 +21,7 @@ import {
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import FlightIcon from "@mui/icons-material/Flight";
-import HistoryIcon from "@mui/icons-material/History";
-import PeopleIcon from "@mui/icons-material/People";
+import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import LogoutIcon from "@mui/icons-material/Logout";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
@@ -33,19 +31,9 @@ const APPBAR_HEIGHT = 64;
 const navItems = [
   { label: "Dashboard", path: "/", icon: <DashboardIcon fontSize="small" /> },
   {
-    label: "Flights",
-    path: "/flights",
-    icon: <FlightIcon fontSize="small" />,
-  },
-  {
-    label: "Past Flights",
-    path: "/past-flights",
-    icon: <HistoryIcon fontSize="small" />,
-  },
-  {
-    label: "Crew Profiles",
-    path: "/crew",
-    icon: <PeopleIcon fontSize="small" />,
+    label: "Projects",
+    path: "/projects",
+    icon: <FolderOpenIcon fontSize="small" />,
   },
 ];
 
@@ -89,7 +77,12 @@ export default function Layout() {
     navigate("/login", { replace: true });
   };
 
-  const currentPage = navItems.find((item) => item.path === location.pathname);
+  const currentPage = (() => {
+    if (location.pathname === "/") return navItems.find((i) => i.path === "/");
+    return navItems.find(
+      (item) => item.path !== "/" && location.pathname.startsWith(item.path)
+    );
+  })();
 
   const drawer = (
     <Box
@@ -164,7 +157,10 @@ export default function Layout() {
       {/* Nav Items */}
       <List sx={{ px: 2, flexGrow: 1, py: 0 }}>
         {navItems.map((item) => {
-          const isSelected = location.pathname === item.path;
+          const isSelected =
+            item.path === "/"
+              ? location.pathname === "/"
+              : location.pathname.startsWith(item.path);
           return (
             <ListItemButton
               key={item.path}

@@ -119,3 +119,32 @@ export interface PurserSection {
     detailedCriteria?: string;
   }[];
 }
+
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  status: 'active' | 'completed' | 'draft';
+  plansCount: number;
+  completedPlans: number;
+  updatedAt: string;
+  color: string;
+}
+
+export interface PlanTask {
+  id: string;
+  title: string;
+  status: 'todo' | 'in-progress' | 'done';
+  assignee?: string;
+  priority: 'low' | 'medium' | 'high';
+}
+
+export interface Plan {
+  id: string;
+  projectId: string;
+  name: string;
+  description: string;
+  status: 'draft' | 'in-progress' | 'completed';
+  updatedAt: string;
+  tasks: PlanTask[];
+}

@@ -3,6 +3,9 @@ import { ThemeProvider, CssBaseline } from "@mui/material";
 import theme from "./theme";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
+import Projects from "./pages/Projects";
+import ProjectPlans from "./pages/ProjectPlans";
+import PlanCanvas from "./pages/PlanCanvas";
 import FlightView from "./pages/FlightView";
 import FlightList from "./pages/FlightList";
 import CabinCrewAssessment from "./pages/CabinCrewAssessment";
@@ -33,6 +36,9 @@ export default function App() {
             }
           >
             <Route path="/" element={<Dashboard />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/projects/:projectId/plans" element={<ProjectPlans />} />
+            <Route path="/projects/:projectId/plans/:planId" element={<PlanCanvas />} />
             <Route path="/flights" element={<FlightList />} />
             <Route path="/flights/:flightId" element={<FlightView />} />
             <Route
